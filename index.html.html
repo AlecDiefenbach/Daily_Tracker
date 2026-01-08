@@ -1,0 +1,2513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Tracker 2026</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+        
+        .container { max-width: 500px; margin: 0 auto; }
+        
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .header h1 { color: #667eea; font-size: 28px; margin-bottom: 5px; }
+        .date { color: #666; font-size: 16px; margin-bottom: 15px; }
+        
+        .date-picker-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 12px;
+        }
+        
+        .date-picker-container label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .date-picker-container input[type="date"] {
+            flex: 1;
+            padding: 8px 12px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        
+        .date-picker-container button {
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .date-picker-container button:hover {
+            background: #5568d3;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .card h2 { color: #333; font-size: 20px; margin-bottom: 15px; }
+        
+        .streak-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #ff9800, #f44336);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .tap-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .tap-button:active { transform: scale(0.95); }
+        
+        .tap-button.logged {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+        }
+        
+        .tap-button .time {
+            display: block;
+            font-size: 14px;
+            margin-top: 5px;
+            opacity: 0.9;
+        }
+        
+        .tap-button .edit-link {
+            font-size: 12px;
+            text-decoration: underline;
+            opacity: 0.8;
+            margin-top: 5px;
+            display: inline-block;
+        }
+        
+        .time-picker-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .time-picker-modal.active {
+            display: flex;
+        }
+        
+        .time-picker-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 350px;
+            width: 90%;
+        }
+        
+        .time-picker-content h3 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .time-picker-wheels {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .time-wheel {
+            width: 70px;
+            height: 150px;
+            overflow-y: scroll;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            scroll-snap-type: y mandatory;
+            padding: 55px 0;
+        }
+        
+        .time-wheel::-webkit-scrollbar {
+            width: 0;
+        }
+        
+        .time-option {
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #333;
+            scroll-snap-align: center;
+        }
+        
+        .time-picker-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .time-picker-buttons button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .time-picker-buttons .cancel {
+            background: #e0e0e0;
+            color: #333;
+        }
+        
+        .time-picker-buttons .confirm {
+            background: #667eea;
+            color: white;
+        }
+        
+        .checkbox-grid { display: grid; gap: 10px; margin-top: 15px; }
+        
+        .checkbox-item {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid #e0e0e0;
+        }
+        
+        
+        .checkbox-item.checked {
+            background: #e8f5e9;
+            border-color: #4CAF50;
+        }
+        
+        
+        .checkbox-item.overdue {
+            background: #ffebee;
+            border-color: #f44336;
+        }
+        
+        
+        .checkbox-item .emoji { font-size: 24px; min-width: 24px; }
+        .checkbox-item .label { flex: 1; font-size: 16px; color: #333; }
+        
+        .checkbox-item .due-badge {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        
+        .checkbox-item .due-badge.overdue {
+            background: #f44336;
+            color: white;
+        }
+        
+        .checkbox-item .due-badge.due-soon {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .checkbox-item .due-badge.due-later {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .checkbox-item .checkmark {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            min-width: 24px;
+        }
+        
+        .checkbox-item.checked .checkmark {
+            background: #4CAF50;
+            border-color: #4CAF50;
+            color: white;
+        }
+        
+        .expandable-section {
+            margin-bottom: 15px;
+        }
+        
+        .section-header {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .section-header:hover {
+            background: #5568d3;
+        }
+        
+        .section-header .arrow {
+            transition: transform 0.3s;
+        }
+        
+        .section-header.expanded .arrow {
+            transform: rotate(180deg);
+        }
+        
+        .section-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        
+        .section-content.expanded {
+            max-height: 3000px;
+            padding-top: 15px;
+        }
+        
+        .counter-item {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+            border: 2px solid #e0e0e0;
+        }
+        
+        
+        .counter-item .emoji { font-size: 24px; }
+        .counter-item .label { flex: 1; font-size: 16px; color: #333; }
+        
+        .counter-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .counter-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 8px;
+            background: #667eea;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .counter-btn:active {
+            transform: scale(0.9);
+        }
+        
+        .counter-value {
+            min-width: 40px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .counter-value.exceeded {
+            color: #f44336;
+        }
+        
+        .timer-item {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border: 2px solid #e0e0e0;
+        }
+        
+        
+        .timer-item.active {
+            background: #fff3e0;
+            border: 2px solid #ff9800;
+        }
+        
+        
+        .timer-item.completed {
+            background: #e8f5e9;
+            border: 2px solid #4CAF50;
+        }
+        
+        
+        .timer-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .timer-emoji { font-size: 24px; }
+        .timer-label { flex: 1; font-size: 16px; font-weight: 600; color: #333; }
+        .timer-display { font-size: 20px; font-weight: bold; color: #667eea; }
+        
+        .timer-buttons { display: flex; gap: 8px; margin-top: 10px; }
+        
+        .timer-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .timer-btn.start { background: #4CAF50; color: white; }
+        .timer-btn.stop { background: #f44336; color: white; }
+        .timer-btn.reset { background: #e0e0e0; color: #333; }
+        
+        .timer-manual {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .timer-manual-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 8px;
+            background: #667eea;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .tab-nav { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; }
+        
+        .tab-button {
+            flex: 1;
+            min-width: 80px;
+            background: white;
+            border: none;
+            padding: 15px 10px;
+            border-radius: 15px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            color: #666;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            white-space: nowrap;
+        }
+        
+        .tab-button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .history-item {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border: 2px solid #e0e0e0;
+        }
+        
+        
+        .history-date { font-weight: 600; color: #667eea; margin-bottom: 8px; }
+        .history-details { font-size: 14px; color: #666; line-height: 1.6; }
+        
+        .progress-bar-container { margin: 15px 0; }
+        
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .progress-bar {
+            background: #e0e0e0;
+            height: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s;
+        }
+        
+        .progress-fill.met-goal {
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+        }
+        
+        .progress-fill.exceeded-max {
+            background: linear-gradient(90deg, #f44336, #d32f2f);
+        }
+        
+        .stat-section { margin-bottom: 20px; }
+        .stat-section h3 { font-size: 18px; margin-bottom: 10px; color: #333; }
+        
+        .toggle-completed {
+            background: #e0e0e0;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 10px;
+            width: 100%;
+            color: #333;
+        }
+        
+        .summary-button {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
+        }
+        
+        .summary-button:active {
+            transform: scale(0.98);
+        }
+        
+        .summary-box {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 15px;
+            white-space: pre-wrap;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #333;
+            display: none;
+        }
+        
+        .summary-box.active {
+            display: block;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Daily Tracker</h1>
+            <div class="date" id="currentDate"></div>
+            <div class="date-picker-container" style="display: none;" id="datePicker">
+                <label>📅 Edit Date:</label>
+                <input type="date" id="dateInput" onchange="loadDateData()">
+                <button onclick="goToToday()">Today</button>
+                <button onclick="if(confirm('Reset all data and load Sample Test Data (Jan 1-7, 2026)?')) clearAllDataAndLoadSample()" style="background: #f44336;">🔄 Reset</button>
+            </div>
+        </div>
+        
+        <div class="tab-nav">
+            <button class="tab-button active" onclick="switchTab('today')">Today</button>
+            <button class="tab-button" onclick="switchTab('cleaning')">Cleaning</button>
+            <button class="tab-button" onclick="switchTab('history')">History</button>
+            <button class="tab-button" onclick="switchTab('stats')">Stats</button>
+        </div>
+        
+        <!-- Time Picker Modal -->
+        <div class="time-picker-modal" id="timePickerModal">
+            <div class="time-picker-content">
+                <h3 id="timePickerTitle">Set Time</h3>
+                <div class="time-picker-wheels">
+                    <div class="time-wheel" id="hourWheel"></div>
+                    <div style="font-size: 24px; color: #333; display: flex; align-items: center;">:</div>
+                    <div class="time-wheel" id="minuteWheel"></div>
+                </div>
+                <div class="time-picker-buttons">
+                    <button class="cancel" onclick="closeTimePicker()">Cancel</button>
+                    <button class="confirm" onclick="confirmTime()">Set</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- TODAY TAB -->
+        <div class="tab-content active" id="today-tab">
+            <div class="card">
+                <h2>😴 Sleep<span class="streak-badge" id="sleepStreak" style="display: none;">🔥 0 days</span></h2>
+                <button class="tap-button" id="wakeBtn" onclick="logWakeTime()">
+                    <span id="wakeBtnText">☀️ Out of Bed</span>
+                    <span class="time" id="wakeTime"></span>
+                    <span class="edit-link" id="wakeEdit" style="display: none;" onclick="event.stopPropagation(); editWakeTime()">Edit time</span>
+                </button>
+                <button class="tap-button" id="sleepBtn" onclick="logSleepTime()">
+                    <span id="sleepBtnText">🌙 Going to Bed</span>
+                    <span class="time" id="sleepTime"></span>
+                    <span class="edit-link" id="sleepEdit" style="display: none;" onclick="event.stopPropagation(); editSleepTime()">Edit time</span>
+                </button>
+            </div>
+            
+            <!-- Exercise Section -->
+            <div class="card">
+                <div class="expandable-section">
+                    <div class="section-header" onclick="toggleSection('exercise')">
+                        <span>💪 Exercise</span>
+                        <span class="arrow">▼</span>
+                    </div>
+                    <div class="section-content" id="section-exercise">
+                        <div class="checkbox-grid">
+                            <div class="checkbox-item" onclick="toggleItem('gymWeights')" id="item-gymWeights">
+                                <span class="emoji">🏋️</span>
+                                <span class="label">Gym - Weights</span>
+                                <span class="checkmark"></span>
+                            </div>
+                            <div class="checkbox-item" onclick="toggleItem('gymCardio')" id="item-gymCardio">
+                                <span class="emoji">🚴</span>
+                                <span class="label">Gym - Cardio</span>
+                                <span class="checkmark"></span>
+                            </div>
+                            <div class="checkbox-item" onclick="toggleItem('walk')" id="item-walk">
+                                <span class="emoji">🚶</span>
+                                <span class="label">Walk</span>
+                                <span class="checkmark"></span>
+                            </div>
+                            <div class="checkbox-item" onclick="toggleItem('yoga')" id="item-yoga">
+                                <span class="emoji">🧘</span>
+                                <span class="label">Yoga</span>
+                                <span class="checkmark"></span>
+                            </div>
+                            <div class="checkbox-item" onclick="toggleItem('stretching')" id="item-stretching">
+                                <span class="emoji">🤸</span>
+                                <span class="label">Stretching</span>
+                                <span class="checkmark"></span>
+                            </div>
+                            <div class="checkbox-item" onclick="toggleItem('surf')" id="item-surf">
+                                <span class="emoji">🏄</span>
+                                <span class="label">Surf</span>
+                                <span class="checkmark"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Health Section -->
+            <div class="card">
+                <div class="expandable-section">
+                    <div class="section-header" onclick="toggleSection('health')">
+                        <span>🏥 Health</span>
+                        <span class="arrow">▼</span>
+                    </div>
+                    <div class="section-content" id="section-health">
+                        <div class="checkbox-grid">
+                            <div class="checkbox-item" onclick="toggleItem('eyeDrops')" id="item-eyeDrops">
+                                <span class="emoji">👁️</span>
+                                <span class="label">Eye Drops</span>
+                                <span class="checkmark"></span>
+                            </div>
+                            <div class="checkbox-item" onclick="toggleItem('duofilm')" id="item-duofilm">
+                                <span class="emoji">💧</span>
+                                <span class="label">Duofilm</span>
+                                <span class="checkmark"></span>
+                            </div>
+                            <div class="checkbox-item" onclick="toggleItem('nasonex')" id="item-nasonex">
+                                <span class="emoji">👃</span>
+                                <span class="label">Nasonex</span>
+                                <span class="checkmark"></span>
+                            </div>
+                            <div class="checkbox-item" onclick="toggleItem('noseTape')" id="item-noseTape">
+                                <span class="emoji">🩹</span>
+                                <span class="label">Nose Tape</span>
+                                <span class="checkmark"></span>
+                            </div>
+                            <div class="checkbox-item" onclick="toggleItem('mouthTape')" id="item-mouthTape">
+                                <span class="emoji">🤐</span>
+                                <span class="label">Mouth Tape</span>
+                                <span class="checkmark"></span>
+                            </div>
+                            <div class="checkbox-item" onclick="toggleItem('eyeGel')" id="item-eyeGel">
+                                <span class="emoji">👀</span>
+                                <span class="label">Eye Gel</span>
+                                <span class="checkmark"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Daily Habits Section -->
+            <div class="card">
+                <div class="expandable-section">
+                    <div class="section-header" onclick="toggleSection('habits')">
+                        <span>✅ Daily Habits</span>
+                        <span class="arrow">▼</span>
+                    </div>
+                    <div class="section-content" id="section-habits">
+                        <div class="checkbox-grid">
+                            <div class="checkbox-item" onclick="toggleItem('morningSun')" id="item-morningSun">
+                                <span class="emoji">🌅</span>
+                                <span class="label">Morning Sun</span>
+                                <span class="checkmark"></span>
+                            </div>
+                            <div class="checkbox-item" onclick="toggleItem('afternoonSun')" id="item-afternoonSun">
+                                <span class="emoji">🌇</span>
+                                <span class="label">Afternoon Sun</span>
+                                <span class="checkmark"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Timed Activities Section -->
+            <div class="card">
+                <div class="expandable-section">
+                    <div class="section-header" onclick="toggleSection('timed')">
+                        <span>⏱️ Timed Activities</span>
+                        <span class="arrow">▼</span>
+                    </div>
+                    <div class="section-content" id="section-timed">
+                        <div class="timer-item" id="timer-lifeAdmin">
+                            <div class="timer-header">
+                                <span class="timer-emoji">📋</span>
+                                <span class="timer-label">Life Admin</span>
+                                <span class="timer-display" id="display-lifeAdmin">00:00</span>
+                            </div>
+                            <div class="timer-buttons">
+                                <button class="timer-btn start" onclick="startTimer('lifeAdmin')">Start</button>
+                                <button class="timer-btn stop" onclick="stopTimer('lifeAdmin')">Stop</button>
+                                <button class="timer-btn reset" onclick="resetTimer('lifeAdmin')">Reset</button>
+                            </div>
+                            <div class="timer-manual">
+                                <button class="timer-manual-btn" onclick="adjustTimer('lifeAdmin', -10)">-</button>
+                                <span style="font-size: 14px; color: #666;">10 min</span>
+                                <button class="timer-manual-btn" onclick="adjustTimer('lifeAdmin', 10)">+</button>
+                            </div>
+                        </div>
+                        
+                        <div class="timer-item" id="timer-reading">
+                            <div class="timer-header">
+                                <span class="timer-emoji">📚</span>
+                                <span class="timer-label">Reading</span>
+                                <span class="timer-display" id="display-reading">00:00</span>
+                            </div>
+                            <div class="timer-buttons">
+                                <button class="timer-btn start" onclick="startTimer('reading')">Start</button>
+                                <button class="timer-btn stop" onclick="stopTimer('reading')">Stop</button>
+                                <button class="timer-btn reset" onclick="resetTimer('reading')">Reset</button>
+                            </div>
+                            <div class="timer-manual">
+                                <button class="timer-manual-btn" onclick="adjustTimer('reading', -10)">-</button>
+                                <span style="font-size: 14px; color: #666;">10 min</span>
+                                <button class="timer-manual-btn" onclick="adjustTimer('reading', 10)">+</button>
+                            </div>
+                        </div>
+                        
+                        <div class="timer-item" id="timer-budget">
+                            <div class="timer-header">
+                                <span class="timer-emoji">💰</span>
+                                <span class="timer-label">Budget</span>
+                                <span class="timer-display" id="display-budget">00:00</span>
+                            </div>
+                            <div class="timer-buttons">
+                                <button class="timer-btn start" onclick="startTimer('budget')">Start</button>
+                                <button class="timer-btn stop" onclick="stopTimer('budget')">Stop</button>
+                                <button class="timer-btn reset" onclick="resetTimer('budget')">Reset</button>
+                            </div>
+                            <div class="timer-manual">
+                                <button class="timer-manual-btn" onclick="adjustTimer('budget', -10)">-</button>
+                                <span style="font-size: 14px; color: #666;">10 min</span>
+                                <button class="timer-manual-btn" onclick="adjustTimer('budget', 10)">+</button>
+                            </div>
+                        </div>
+                        
+                        <div class="timer-item" id="timer-videoGames">
+                            <div class="timer-header">
+                                <span class="timer-emoji">🎮</span>
+                                <span class="timer-label">Video Games</span>
+                                <span class="timer-display" id="display-videoGames">00:00</span>
+                            </div>
+                            <div class="timer-buttons">
+                                <button class="timer-btn start" onclick="startTimer('videoGames')">Start</button>
+                                <button class="timer-btn stop" onclick="stopTimer('videoGames')">Stop</button>
+                                <button class="timer-btn reset" onclick="resetTimer('videoGames')">Reset</button>
+                            </div>
+                            <div class="timer-manual">
+                                <button class="timer-manual-btn" onclick="adjustTimer('videoGames', -10)">-</button>
+                                <span style="font-size: 14px; color: #666;">10 min</span>
+                                <button class="timer-manual-btn" onclick="adjustTimer('videoGames', 10)">+</button>
+                            </div>
+                        </div>
+                        
+                        <div class="timer-item" id="timer-portuguese">
+                            <div class="timer-header">
+                                <span class="timer-emoji">🇧🇷</span>
+                                <span class="timer-label">Portuguese</span>
+                                <span class="timer-display" id="display-portuguese">00:00</span>
+                            </div>
+                            <div class="timer-buttons">
+                                <button class="timer-btn start" onclick="startTimer('portuguese')">Start</button>
+                                <button class="timer-btn stop" onclick="stopTimer('portuguese')">Stop</button>
+                                <button class="timer-btn reset" onclick="resetTimer('portuguese')">Reset</button>
+                            </div>
+                            <div class="timer-manual">
+                                <button class="timer-manual-btn" onclick="adjustTimer('portuguese', -10)">-</button>
+                                <span style="font-size: 14px; color: #666;">10 min</span>
+                                <button class="timer-manual-btn" onclick="adjustTimer('portuguese', 10)">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Diet & Cooking Section -->
+            <div class="card">
+                <div class="expandable-section">
+                    <div class="section-header" onclick="toggleSection('diet')">
+                        <span>🍽️ Diet & Cooking</span>
+                        <span class="arrow">▼</span>
+                    </div>
+                    <div class="section-content" id="section-diet">
+                        <div class="counter-item">
+                            <span class="emoji">☕</span>
+                            <span class="label">Coffee (made)</span>
+                            <div class="counter-controls">
+                                <button class="counter-btn" onclick="adjustCounter('coffeeMade', -1)">-</button>
+                                <span class="counter-value" id="counter-coffeeMade">0</span>
+                                <button class="counter-btn" onclick="adjustCounter('coffeeMade', 1)">+</button>
+                            </div>
+                        </div>
+                        <div style="font-size: 12px; color: #666; margin: -5px 0 10px 52px;">Goal: Max 2/week</div>
+                        
+                        <div class="counter-item">
+                            <span class="emoji">🥤</span>
+                            <span class="label">Coffee (bought)</span>
+                            <div class="counter-controls">
+                                <button class="counter-btn" onclick="adjustCounter('coffeeBought', -1)">-</button>
+                                <span class="counter-value" id="counter-coffeeBought">0</span>
+                                <button class="counter-btn" onclick="adjustCounter('coffeeBought', 1)">+</button>
+                            </div>
+                        </div>
+                        <div style="font-size: 12px; color: #666; margin: -5px 0 10px 52px;">Goal: Max 1/week</div>
+                        
+                        <div class="checkbox-grid" style="margin-top: 15px;">
+                            <div class="checkbox-item" onclick="toggleItem('chocolate')" id="item-chocolate">
+                                <span class="emoji">🍫</span>
+                                <span class="label">Chocolate</span>
+                                <span class="checkmark"></span>
+                            </div>
+                        </div>
+                        <div style="font-size: 12px; color: #666; margin: -5px 0 10px 52px;">Goal: NONE (until April)</div>
+                        
+                        <div class="counter-item" style="margin-top: 10px;">
+                            <span class="emoji">🍺</span>
+                            <span class="label">Alcoholic Beverage</span>
+                            <div class="counter-controls">
+                                <button class="counter-btn" onclick="adjustCounter('alcohol', -1)">-</button>
+                                <span class="counter-value" id="counter-alcohol">0</span>
+                                <button class="counter-btn" onclick="adjustCounter('alcohol', 1)">+</button>
+                            </div>
+                        </div>
+                        <div style="font-size: 12px; color: #666; margin: -5px 0 15px 52px;">Goal: NONE (until April)</div>
+                        
+                        <div class="checkbox-grid">
+                            <div class="checkbox-item" onclick="toggleItem('mealPrep')" id="item-mealPrep">
+                                <span class="emoji">🥘</span>
+                                <span class="label">Meal Prep Session</span>
+                                <span class="checkmark"></span>
+                            </div>
+                            <div class="checkbox-item" onclick="toggleItem('cookedDinner')" id="item-cookedDinner">
+                                <span class="emoji">👨‍🍳</span>
+                                <span class="label">Cooked Dinner</span>
+                                <span class="checkmark"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- CLEANING TAB -->
+        <div class="tab-content" id="cleaning-tab">
+            <div class="card">
+                <h2>🧹 Cleaning Tasks</h2>
+                
+                <!-- Weekly -->
+                <div class="expandable-section">
+                    <div class="section-header" onclick="toggleSection('weekly')">
+                        <span>📅 Weekly Clean (Every 7 days)</span>
+                        <span class="arrow">▼</span>
+                    </div>
+                    <div class="section-content" id="section-weekly">
+                        <div class="checkbox-grid" id="weekly-tasks"></div>
+                        <button class="toggle-completed" onclick="toggleCompleted('weekly')">
+                            <span id="toggle-weekly-text">Show Completed</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Monthly -->
+                <div class="expandable-section">
+                    <div class="section-header" onclick="toggleSection('monthly')">
+                        <span>📆 Monthly Tasks (Every 30 days)</span>
+                        <span class="arrow">▼</span>
+                    </div>
+                    <div class="section-content" id="section-monthly">
+                        <div class="checkbox-grid" id="monthly-tasks"></div>
+                        <button class="toggle-completed" onclick="toggleCompleted('monthly')">
+                            <span id="toggle-monthly-text">Show Completed</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Quarterly -->
+                <div class="expandable-section">
+                    <div class="section-header" onclick="toggleSection('quarterly')">
+                        <span>📊 Quarterly Tasks (Every 90 days)</span>
+                        <span class="arrow">▼</span>
+                    </div>
+                    <div class="section-content" id="section-quarterly">
+                        <div class="checkbox-grid" id="quarterly-tasks"></div>
+                        <button class="toggle-completed" onclick="toggleCompleted('quarterly')">
+                            <span id="toggle-quarterly-text">Show Completed</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Yearly -->
+                <div class="expandable-section">
+                    <div class="section-header" onclick="toggleSection('yearly')">
+                        <span>📅 Yearly Tasks (Every 365 days)</span>
+                        <span class="arrow">▼</span>
+                    </div>
+                    <div class="section-content" id="section-yearly">
+                        <div class="checkbox-grid" id="yearly-tasks"></div>
+                        <button class="toggle-completed" onclick="toggleCompleted('yearly')">
+                            <span id="toggle-yearly-text">Show Completed</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- HISTORY TAB -->
+        <div class="tab-content" id="history-tab">
+            <div class="card">
+                <h2>📅 Recent History</h2>
+                <div id="historyList"></div>
+            </div>
+        </div>
+        
+        <!-- STATS TAB -->
+        <div class="tab-content" id="stats-tab">
+            <div class="card">
+                <button class="summary-button" onclick="generateWeeklySummary()">✨ Generate Weekly Summary</button>
+                <div class="summary-box" id="summaryBox"></div>
+            </div>
+            
+            <div class="card">
+                <h2>😴 Sleep Patterns - Last 7 Days</h2>
+                <canvas id="sleepChart" style="height: 400px;"></canvas>
+            </div>
+            
+            <div class="card">
+                <div class="stat-section">
+                    <h3>💪 Gym Sessions This Week</h3>
+                    <div class="progress-bar-container">
+                        <div class="progress-label">
+                            <span>🏋️ Weights</span>
+                            <span id="weightsCount">0/3</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="weightsProgress"></div>
+                        </div>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-label">
+                            <span>🚴 Cardio</span>
+                            <span id="cardioCount">0/1</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="cardioProgress"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-section">
+                    <h3>⏱️ Time Spent This Week</h3>
+                    <div class="progress-bar-container">
+                        <div class="progress-label">
+                            <span>📋 Life Admin (30 min/day)</span>
+                            <span id="lifeAdminTime">0h / 3.5h</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="lifeAdminProgress"></div>
+                        </div>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-label">
+                            <span>📚 Reading (10 min/day)</span>
+                            <span id="readingTime">0m / 70m</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="readingProgress"></div>
+                        </div>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-label">
+                            <span>💰 Budget (30 min/week)</span>
+                            <span id="budgetTime">0m / 30m</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="budgetProgress"></div>
+                        </div>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-label">
+                            <span>🎮 Video Games (max 2.3h/week)</span>
+                            <span id="videoGamesTime">0h / 2.3h</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="videoGamesProgress"></div>
+                        </div>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-label">
+                            <span>🇧🇷 Portuguese (10 min/day)</span>
+                            <span id="portugueseTime">0m / 70m</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="portugueseProgress"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-section">
+                    <h3>🍽️ Diet Goals This Week</h3>
+                    <div class="progress-bar-container">
+                        <div class="progress-label">
+                            <span>☕ Coffee (made) - Max 2/week</span>
+                            <span id="coffeeMadeWeek">0/2</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="coffeeMadeProgress"></div>
+                        </div>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-label">
+                            <span>🥤 Coffee (bought) - Max 1/week</span>
+                            <span id="coffeeBoughtWeek">0/1</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="coffeeBoughtProgress"></div>
+                        </div>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-label">
+                            <span>🍫 Chocolate - NONE (until April)</span>
+                            <span id="chocolateWeek">0 days</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="chocolateProgress"></div>
+                        </div>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-label">
+                            <span>🍺 Alcohol - NONE (until April)</span>
+                            <span id="alcoholWeek">0 drinks</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="alcoholProgress"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>📅 Monthly Goals</h2>
+                
+                <div class="stat-section">
+                    <h3>💪 Gym Sessions This Month</h3>
+                    <div class="progress-bar-container">
+                        <div class="progress-label">
+                            <span>🏋️ Weights</span>
+                            <span id="weightsCountMonth">0/13</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="weightsProgressMonth"></div>
+                        </div>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-label">
+                            <span>🚴 Cardio</span>
+                            <span id="cardioCountMonth">0/4</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="cardioProgressMonth"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-section">
+                    <h3>⏱️ Time Spent This Month</h3>
+                    <div class="progress-bar-container">
+                        <div class="progress-label">
+                            <span>📋 Life Admin</span>
+                            <span id="lifeAdminTimeMonth">0h / 15h</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="lifeAdminProgressMonth"></div>
+                        </div>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-label">
+                            <span>📚 Reading</span>
+                            <span id="readingTimeMonth">0h / 5h</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="readingProgressMonth"></div>
+                        </div>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-label">
+                            <span>💰 Budget</span>
+                            <span id="budgetTimeMonth">0h / 2h</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="budgetProgressMonth"></div>
+                        </div>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-label">
+                            <span>🎮 Video Games (max)</span>
+                            <span id="videoGamesTimeMonth">0h / 10h</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="videoGamesProgressMonth"></div>
+                        </div>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-label">
+                            <span>🇧🇷 Portuguese</span>
+                            <span id="portugueseTimeMonth">0h / 5h</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="portugueseProgressMonth"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-section">
+                    <h3>🍽️ Diet Goals This Month</h3>
+                    <div class="progress-bar-container">
+                        <div class="progress-label">
+                            <span>☕ Coffee (made) - Max 9/month</span>
+                            <span id="coffeeMadeMonth">0/9</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="coffeeMadeProgressMonth"></div>
+                        </div>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-label">
+                            <span>🥤 Coffee (bought) - Max 4/month</span>
+                            <span id="coffeeBoughtMonth">0/4</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="coffeeBoughtProgressMonth"></div>
+                        </div>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-label">
+                            <span>🍫 Chocolate - NONE (until April)</span>
+                            <span id="chocolateMonth">0 days</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="chocolateProgressMonth"></div>
+                        </div>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-label">
+                            <span>🍺 Alcohol - NONE (until April)</span>
+                            <span id="alcoholMonth">0 drinks</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="alcoholProgressMonth"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Declare variables at top
+        let todayData, allData, cleaningData, timerIntervals = {};
+        let showCompletedSections = { weekly: false, monthly: false, quarterly: false, yearly: false };
+        let sleepChart = null;
+        let currentTimePickerType = null;
+        let streakData = {};
+        let currentEditDate;
+        
+        const itemLabels = {
+            gymWeights: '🏋️ Gym - Weights', gymCardio: '🚴 Gym - Cardio', walk: '🚶 Walk',
+            yoga: '🧘 Yoga', stretching: '🤸 Stretching', surf: '🏄 Surf',
+            eyeDrops: '👁️ Eye Drops', duofilm: '💧 Duofilm', nasonex: '👃 Nasonex',
+            noseTape: '🩹 Nose Tape', mouthTape: '🤐 Mouth Tape', eyeGel: '👀 Eye Gel',
+            morningSun: '🌅 Morning Sun', afternoonSun: '🌇 Afternoon Sun',
+            chocolate: '🍫 Chocolate', mealPrep: '🥘 Meal Prep', cookedDinner: '👨‍🍳 Cooked Dinner'
+        };
+        
+        // Cleaning task definitions
+        const cleaningTasks = {
+            weekly: [
+                { id: 'wipeSurfaces', label: 'Wipe Surfaces', emoji: '🧽' },
+                { id: 'bedSheets', label: 'Remove bed sheets, dust mite spray, vacuum mattress', emoji: '🛏️' },
+                { id: 'vacuumFloor', label: 'Vacuum floor', emoji: '🧹' },
+                { id: 'bathMats', label: 'Shake or replace bath mats', emoji: '🚿' },
+                { id: 'wipeBathroom', label: 'Wipe bathroom surfaces (shower and sink)', emoji: '🚰' },
+                { id: 'cleanToilet', label: 'Clean toilet', emoji: '🚽' },
+                { id: 'sweepBalcony', label: 'Sweep balcony', emoji: '🧹' }
+            ],
+            monthly: [
+                { id: 'airFilter', label: 'Clean air filter and dehumidifier', emoji: '💨' },
+                { id: 'mopFloors', label: 'Mop floors', emoji: '🧽' },
+                { id: 'bathroomDeep', label: 'Bathroom deep clean', emoji: '🛁' },
+                { id: 'dishwasherFilter', label: 'Rinse dishwasher filter', emoji: '🍽️' },
+                { id: 'washingMachine', label: 'Washing machine clean', emoji: '🧺' },
+                { id: 'kitchenAppliances', label: 'Kitchen appliances (microwave, oven)', emoji: '🍳' },
+                { id: 'deskChair', label: 'Clean desk chair', emoji: '💺' },
+                { id: 'wardrobeDoors', label: 'Wardrobe doors', emoji: '🚪' },
+                { id: 'wallsHandles', label: 'Walls, doors, handles, switches', emoji: '🧼' },
+                { id: 'insideWardrobe', label: 'Inside of wardrobe', emoji: '👔' },
+                { id: 'spiderwebs', label: 'Spiderwebs on balcony', emoji: '🕸️' },
+                { id: 'balconyBalustrade', label: 'Balcony balustrade', emoji: '🏢' },
+                { id: 'ceilingFan', label: 'Wipe ceiling fan', emoji: '💨' },
+                { id: 'shutters', label: 'Wipe shutters', emoji: '🪟' }
+            ],
+            quarterly: [
+                { id: 'skirtingBoards', label: 'Vacuum/wipe skirting boards', emoji: '🧹' },
+                { id: 'cleanWindows', label: 'Clean windows', emoji: '🪟' },
+                { id: 'vacuumHidden', label: 'Vacuum hard to reach places', emoji: '🧹' },
+                { id: 'carInterior', label: 'Clean car interior', emoji: '🚗' },
+                { id: 'carExterior', label: 'Wash car exterior', emoji: '🚗' },
+                { id: 'sweepGarage', label: 'Sweep garage', emoji: '🧹' }
+            ],
+            yearly: [
+                { id: 'screenDoors', label: 'Front and balcony screen doors', emoji: '🚪' },
+                { id: 'washBalconyFloor', label: 'Wash balcony floor', emoji: '🧽' }
+            ]
+        };
+        
+        function getToday() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+        
+        function loadTodayData() {
+            const today = getToday();
+            const stored = localStorage.getItem(`tracker_${today}`);
+            return stored ? JSON.parse(stored) : {
+                date: today,
+                wakeTime: null,
+                sleepTime: null,
+                items: [],
+                counters: { coffeeMade: 0, coffeeBought: 0, alcohol: 0 },
+                timers: {
+                    lifeAdmin: { total: 0, running: false, startTime: null },
+                    reading: { total: 0, running: false, startTime: null },
+                    budget: { total: 0, running: false, startTime: null },
+                    videoGames: { total: 0, running: false, startTime: null },
+                    portuguese: { total: 0, running: false, startTime: null }
+                }
+            };
+        }
+        
+        function loadCleaningData() {
+            const stored = localStorage.getItem('cleaning_data');
+            if (stored) return JSON.parse(stored);
+            
+            // Initialize with today's date (all tasks just completed)
+            const today = new Date().toISOString();
+            const data = {};
+            Object.keys(cleaningTasks).forEach(freq => {
+                data[freq] = {};
+                cleaningTasks[freq].forEach(task => {
+                    data[freq][task.id] = today; // Set all to today
+                });
+            });
+            return data;
+        }
+        
+        function saveCleaningData() {
+            localStorage.setItem('cleaning_data', JSON.stringify(cleaningData));
+        }
+        
+        function loadAllData() {
+            const stored = localStorage.getItem('tracker_history');
+            return stored ? JSON.parse(stored) : [];
+        }
+        
+        function loadDummyData() {
+            // Sample Test Data for December 2025 + January 1-7, 2026 (in reverse chronological order)
+            const dummyData = [];
+            
+            // January 2026 data (Jan 1-7)
+            const janData = [
+                {
+                    date: '2026-01-07',
+                    wakeTime: '07:00', sleepTime: null, isWeekend: false,
+                    items: ['gymWeights', 'walk', 'eyeDrops', 'morningSun'],
+                    counters: { coffeeMade: 1, coffeeBought: 0, alcohol: 0 },
+                    timers: { lifeAdmin: { total: 1200 }, reading: { total: 600 }, budget: { total: 0 }, videoGames: { total: 600 }, portuguese: { total: 720 } }
+                },
+                {
+                    date: '2026-01-06',
+                    wakeTime: '06:30', sleepTime: '22:30', isWeekend: false,
+                    items: ['gymCardio', 'stretching', 'eyeDrops', 'duofilm', 'nasonex', 'noseTape', 'mouthTape', 'eyeGel', 'morningSun', 'afternoonSun', 'cookedDinner'],
+                    counters: { coffeeMade: 0, coffeeBought: 0, alcohol: 0 },
+                    timers: { lifeAdmin: { total: 2700 }, reading: { total: 900 }, budget: { total: 0 }, videoGames: { total: 0 }, portuguese: { total: 660 } }
+                },
+                {
+                    date: '2026-01-05',
+                    wakeTime: '07:30', sleepTime: '23:15', isWeekend: false,
+                    items: ['gymWeights', 'walk', 'eyeDrops', 'nasonex', 'mouthTape', 'morningSun'],
+                    counters: { coffeeMade: 1, coffeeBought: 0, alcohol: 0 },
+                    timers: { lifeAdmin: { total: 1500 }, reading: { total: 480 }, budget: { total: 0 }, videoGames: { total: 1800 }, portuguese: { total: 540 } }
+                },
+                {
+                    date: '2026-01-04',
+                    wakeTime: '09:00', sleepTime: '23:45', isWeekend: true,
+                    items: ['surf', 'stretching', 'morningSun'],
+                    counters: { coffeeMade: 0, coffeeBought: 1, alcohol: 0 },
+                    timers: { lifeAdmin: { total: 900 }, reading: { total: 1200 }, budget: { total: 0 }, videoGames: { total: 2400 }, portuguese: { total: 600 } }
+                },
+                {
+                    date: '2026-01-03',
+                    wakeTime: '08:30', sleepTime: '00:15', isWeekend: true,
+                    items: ['walk', 'yoga', 'eyeDrops', 'duofilm', 'morningSun', 'cookedDinner'],
+                    counters: { coffeeMade: 1, coffeeBought: 0, alcohol: 2 },
+                    timers: { lifeAdmin: { total: 1200 }, reading: { total: 300 }, budget: { total: 0 }, videoGames: { total: 3600 }, portuguese: { total: 0 } }
+                },
+                {
+                    date: '2026-01-02',
+                    wakeTime: '06:45', sleepTime: '22:45', isWeekend: false,
+                    items: ['gymCardio', 'stretching', 'eyeDrops', 'nasonex', 'morningSun', 'mealPrep'],
+                    counters: { coffeeMade: 0, coffeeBought: 1, alcohol: 1 },
+                    timers: { lifeAdmin: { total: 2100 }, reading: { total: 900 }, budget: { total: 1800 }, videoGames: { total: 0 }, portuguese: { total: 600 } }
+                },
+                {
+                    date: '2026-01-01',
+                    wakeTime: '07:15', sleepTime: '23:30', isWeekend: false,
+                    items: ['gymWeights', 'walk', 'eyeDrops', 'duofilm', 'morningSun', 'afternoonSun', 'cookedDinner'],
+                    counters: { coffeeMade: 1, coffeeBought: 0, alcohol: 0 },
+                    timers: { lifeAdmin: { total: 1800 }, reading: { total: 600 }, budget: { total: 0 }, videoGames: { total: 1200 }, portuguese: { total: 720 } }
+                }
+            ];
+            
+            // December 2025 data (Dec 1-31) - generating varied realistic data
+            for (let day = 31; day >= 1; day--) {
+                const date = `2025-12-${String(day).padStart(2, '0')}`;
+                const dayOfWeek = new Date(date).getDay();
+                const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+                
+                const items = [];
+                const timers = {
+                    lifeAdmin: { total: 0 },
+                    reading: { total: 0 },
+                    budget: { total: 0 },
+                    videoGames: { total: 0 },
+                    portuguese: { total: 0 }
+                };
+                
+                // Gym pattern: ~3-4 times per week
+                if (!isWeekend && day % 3 === 0) items.push('gymWeights');
+                if (!isWeekend && day % 4 === 1) items.push('gymCardio');
+                if (isWeekend && day % 2 === 0) items.push('walk');
+                if (day % 5 === 0) items.push('yoga');
+                if (day % 3 === 1) items.push('stretching');
+                
+                // Health items - more consistent
+                if (day % 2 === 0) items.push('eyeDrops');
+                if (day % 3 === 0) items.push('duofilm');
+                if (day % 2 === 1) items.push('nasonex');
+                if (!isWeekend) items.push('morningSun');
+                if (day % 4 === 0) items.push('afternoonSun');
+                if (day % 5 === 0) items.push('noseTape');
+                if (day % 4 === 1) items.push('mouthTape');
+                
+                // Cooking
+                if (day % 6 === 0) items.push('mealPrep');
+                if (day % 3 === 0) items.push('cookedDinner');
+                
+                // Timers - varied amounts
+                timers.lifeAdmin.total = isWeekend ? Math.floor(Math.random() * 3600) + 1800 : Math.floor(Math.random() * 2400) + 1200;
+                timers.reading.total = Math.floor(Math.random() * 900) + 300;
+                timers.budget.total = day % 7 === 0 ? Math.floor(Math.random() * 1800) : 0;
+                timers.videoGames.total = isWeekend ? Math.floor(Math.random() * 4800) + 1200 : Math.floor(Math.random() * 1800);
+                timers.portuguese.total = day % 2 === 0 ? Math.floor(Math.random() * 900) + 300 : 0;
+                
+                dummyData.push({
+                    date,
+                    wakeTime: isWeekend ? 
+                        `0${Math.floor(Math.random() * 2) + 8}:${['00', '15', '30', '45'][Math.floor(Math.random() * 4)]}` : 
+                        `0${Math.floor(Math.random() * 2) + 6}:${['00', '15', '30', '45'][Math.floor(Math.random() * 4)]}`,
+                    sleepTime: day === 31 ? null : `${22 + Math.floor(Math.random() * 2)}:${['00', '15', '30', '45'][Math.floor(Math.random() * 4)]}`,
+                    isWeekend,
+                    items,
+                    counters: {
+                        coffeeMade: Math.floor(Math.random() * 2),
+                        coffeeBought: Math.floor(Math.random() * 2),
+                        alcohol: isWeekend ? Math.floor(Math.random() * 3) : (Math.random() < 0.3 ? 1 : 0)
+                    },
+                    timers
+                });
+            }
+            
+            // Combine Jan and Dec data
+            const allSampleData = [...janData, ...dummyData];
+            
+            // Store each day individually
+            allSampleData.forEach(day => {
+                localStorage.setItem(`tracker_${day.date}`, JSON.stringify(day));
+            });
+            
+            // Store history in reverse chronological order
+            localStorage.setItem('tracker_history', JSON.stringify(allSampleData));
+            console.log('✅ Sample Test Data loaded for Dec 1-31, 2025 and Jan 1-7, 2026 (reverse chronological order)');
+            return allSampleData;
+        }
+        
+        function restoreUI() {
+            // Restore sleep buttons
+            const wakeBtn = document.getElementById('wakeBtn');
+            const sleepBtn = document.getElementById('sleepBtn');
+            const wakeBtnText = document.getElementById('wakeBtnText');
+            const wakeTime = document.getElementById('wakeTime');
+            const wakeEdit = document.getElementById('wakeEdit');
+            const sleepBtnText = document.getElementById('sleepBtnText');
+            const sleepTime = document.getElementById('sleepTime');
+            const sleepEdit = document.getElementById('sleepEdit');
+            
+            if (wakeBtn && wakeBtnText && wakeTime) {
+                if (todayData.wakeTime) {
+                    wakeBtn.classList.add('logged');
+                    wakeBtnText.textContent = '✅ Awake';
+                    wakeTime.textContent = `at ${todayData.wakeTime}`;
+                    if (wakeEdit) wakeEdit.style.display = 'block';
+                } else {
+                    wakeBtn.classList.remove('logged');
+                    wakeBtnText.textContent = '☀️ I\'m Awake!';
+                    wakeTime.textContent = '';
+                    if (wakeEdit) wakeEdit.style.display = 'none';
+                }
+            }
+            
+            if (sleepBtn && sleepBtnText && sleepTime) {
+                if (todayData.sleepTime) {
+                    sleepBtn.classList.add('logged');
+                    sleepBtnText.textContent = '✅ In Bed';
+                    sleepTime.textContent = `at ${todayData.sleepTime}`;
+                    if (sleepEdit) sleepEdit.style.display = 'block';
+                } else {
+                    sleepBtn.classList.remove('logged');
+                    sleepBtnText.textContent = '🌙 Going to Bed';
+                    sleepTime.textContent = '';
+                    if (sleepEdit) sleepEdit.style.display = 'none';
+                }
+            }
+            
+            // Restore checked items
+            document.querySelectorAll('.checkbox-item').forEach(elem => {
+                elem.classList.remove('checked');
+                const check = elem.querySelector('.checkmark');
+                if (check) check.textContent = '';
+            });
+            
+            todayData.items.forEach(id => {
+                const elem = document.getElementById(`item-${id}`);
+                if (elem) {
+                    elem.classList.add('checked');
+                    const check = elem.querySelector('.checkmark');
+                    if (check) check.textContent = '✓';
+                }
+            });
+            
+            // Restore counters
+            const coffeeMadeCount = document.getElementById('counter-coffeeMade');
+            const coffeeBoughtCount = document.getElementById('counter-coffeeBought');
+            const alcoholCount = document.getElementById('counter-alcohol');
+            
+            if (coffeeMadeCount) coffeeMadeCount.textContent = todayData.counters?.coffeeMade || 0;
+            if (coffeeBoughtCount) coffeeBoughtCount.textContent = todayData.counters?.coffeeBought || 0;
+            if (alcoholCount) alcoholCount.textContent = todayData.counters?.alcohol || 0;
+            
+            // Update counter colors
+            updateCounterColor('coffeeMade');
+            updateCounterColor('coffeeBought');
+            updateCounterColor('alcohol');
+            
+            // Restore timers
+            Object.keys(todayData.timers).forEach(name => {
+                const timerData = todayData.timers[name];
+                updateTimerDisplay(name, timerData.total || 0);
+                const timerElem = document.getElementById(`timer-${name}`);
+                if (timerElem) {
+                    timerElem.classList.remove('active', 'completed');
+                    if (timerData.total > 0) timerElem.classList.add('completed');
+                }
+            });
+            
+            // Update streak display
+            updateStreaks();
+        }
+        
+        function saveTodayData() {
+            localStorage.setItem(`tracker_${todayData.date}`, JSON.stringify(todayData));
+            updateHistory();
+            updateStreaks();
+            checkGoalAchievements();
+        }
+        
+        function updateHistory() {
+            const idx = allData.findIndex(d => d.date === todayData.date);
+            if (idx >= 0) allData[idx] = {...todayData};
+            else allData.unshift({...todayData});
+            localStorage.setItem('tracker_history', JSON.stringify(allData));
+        }
+        
+        function updateStreaks() {
+            // Only calculate and display the current streak, don't modify it
+            const sleepStreakElem = document.getElementById('sleepStreak');
+            if (!sleepStreakElem) return;
+            
+            // Calculate streak from all data
+            let currentStreak = 0;
+            const sortedData = [...allData].sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            for (const day of sortedData) {
+                if (day.wakeTime && day.sleepTime) {
+                    currentStreak++;
+                } else {
+                    break; // Streak broken
+                }
+            }
+            
+            if (currentStreak > 0) {
+                sleepStreakElem.textContent = `🔥 ${currentStreak} days`;
+                sleepStreakElem.style.display = 'inline-block';
+            } else {
+                sleepStreakElem.style.display = 'none';
+            }
+        }
+        
+        function checkGoalAchievements() {
+            // Check if any goals were just achieved
+            const last7 = allData.slice(0, 7);
+            const weights = last7.filter(d => d.items?.includes('gymWeights')).length;
+            
+            if (weights >= 3 && todayData.items.includes('gymWeights')) {
+                // Just hit gym goal!
+                triggerConfetti();
+            }
+        }
+        
+        function triggerConfetti() {
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+        }
+        
+        // Version control for sample data
+        const SAMPLE_DATA_VERSION = '2026-01-07-v1';
+        
+        function clearAllDataAndLoadSample() {
+            // Clear all tracker data from localStorage
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('tracker_') || key === 'tracker_history' || key === 'cleaning_data' || key === 'streaks') {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach(key => localStorage.removeItem(key));
+            
+            // Load fresh sample data
+            allData = loadDummyData();
+            todayData = loadDataForDate('2026-01-07'); // Start with most recent day
+            
+            // Reset cleaning data to all completed today
+            const today = new Date().toISOString();
+            cleaningData = {};
+            Object.keys(cleaningTasks).forEach(freq => {
+                cleaningData[freq] = {};
+                cleaningTasks[freq].forEach(task => {
+                    cleaningData[freq][task.id] = today;
+                });
+            });
+            saveCleaningData();
+            
+            // Mark this version as loaded
+            localStorage.setItem('sample_data_version', SAMPLE_DATA_VERSION);
+            
+            console.log('✅ All data cleared, Sample Test Data loaded, and cleaning tasks reset to today');
+            
+            // Update UI
+            currentEditDate = '2026-01-07';
+            document.getElementById('dateInput').value = currentEditDate;
+            document.getElementById('currentDate').textContent = new Date('2026-01-07T00:00:00').toLocaleDateString('en-AU', {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+            });
+            restoreUI();
+            renderHistory();
+            
+            // Re-render all cleaning sections
+            ['weekly', 'monthly', 'quarterly', 'yearly'].forEach(section => renderCleaningSection(section));
+        }
+        
+        // Initialize
+        const storedDate = localStorage.getItem('last_loaded_date');
+        const currentDate = getToday();
+        
+        if (storedDate && storedDate !== currentDate) {
+            const yesterdayKey = `tracker_${storedDate}`;
+            const yesterdayData = localStorage.getItem(yesterdayKey);
+            if (yesterdayData) {
+                const parsed = JSON.parse(yesterdayData);
+                allData = loadAllData();
+                const idx = allData.findIndex(d => d.date === parsed.date);
+                if (idx >= 0) allData[idx] = parsed;
+                else allData.unshift(parsed);
+                localStorage.setItem('tracker_history', JSON.stringify(allData));
+            }
+        }
+        
+        todayData = loadTodayData();
+        allData = loadAllData();
+        
+        // Check if we need to load sample data (first run or outdated version)
+        const loadedVersion = localStorage.getItem('sample_data_version');
+        if (loadedVersion !== SAMPLE_DATA_VERSION) {
+            clearAllDataAndLoadSample();
+        } else if (allData.length === 0) {
+            // Fallback: if history is empty but version matches, reload sample data
+            allData = loadDummyData();
+            todayData = loadDataForDate('2026-01-07');
+        }
+        
+        cleaningData = loadCleaningData();
+        currentEditDate = getToday();
+        
+        localStorage.setItem('last_loaded_date', currentDate);
+        
+        // Set up date picker
+        document.getElementById('dateInput').value = currentEditDate;
+        document.getElementById('datePicker').style.display = 'flex';
+        
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-AU', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+        
+        // Restore sleep buttons
+        const wakeBtn = document.getElementById('wakeBtn');
+        const sleepBtn = document.getElementById('sleepBtn');
+        const wakeBtnText = document.getElementById('wakeBtnText');
+        const wakeTimeElem = document.getElementById('wakeTime');
+        const wakeEdit = document.getElementById('wakeEdit');
+        const sleepBtnText = document.getElementById('sleepBtnText');
+        const sleepTimeElem = document.getElementById('sleepTime');
+        const sleepEdit = document.getElementById('sleepEdit');
+        
+        if (wakeBtn && wakeBtnText && wakeTimeElem) {
+            if (todayData.wakeTime) {
+                wakeBtn.classList.add('logged');
+                wakeBtnText.textContent = '✅ Out of Bed';
+                wakeTimeElem.textContent = `at ${todayData.wakeTime}`;
+                if (wakeEdit) wakeEdit.style.display = 'block';
+            }
+        }
+        
+        if (sleepBtn && sleepBtnText && sleepTimeElem) {
+            if (todayData.sleepTime) {
+                sleepBtn.classList.add('logged');
+                sleepBtnText.textContent = '✅ In Bed';
+                sleepTimeElem.textContent = `at ${todayData.sleepTime}`;
+                if (sleepEdit) sleepEdit.style.display = 'block';
+            }
+        }
+        
+        // Restore items
+        todayData.items.forEach(id => {
+            const elem = document.getElementById(`item-${id}`);
+            if (elem) {
+                elem.classList.add('checked');
+                const checkmark = elem.querySelector('.checkmark');
+                if (checkmark) checkmark.textContent = '✓';
+            }
+        });
+        
+        // Restore counters
+        Object.keys(todayData.counters).forEach(key => {
+            const elem = document.getElementById(`counter-${key}`);
+            if (elem) {
+                elem.textContent = todayData.counters[key];
+                updateCounterColor(key);
+            }
+        });
+        
+        // Restore timers
+        Object.keys(todayData.timers).forEach(name => {
+            updateTimerDisplay(name, todayData.timers[name].total);
+            const timerElem = document.getElementById(`timer-${name}`);
+            if (timerElem && todayData.timers[name].total > 0) {
+                timerElem.classList.add('completed');
+            }
+        });
+        
+        // Update streaks on load
+        updateStreaks();
+        
+        // Initialize time picker
+        initTimePicker();
+        
+        function initTimePicker() {
+            const hourWheel = document.getElementById('hourWheel');
+            const minuteWheel = document.getElementById('minuteWheel');
+            
+            for (let i = 0; i < 24; i++) {
+                const div = document.createElement('div');
+                div.className = 'time-option';
+                div.textContent = String(i).padStart(2, '0');
+                div.dataset.value = i;
+                hourWheel.appendChild(div);
+            }
+            
+            for (let i = 0; i < 60; i++) {
+                const div = document.createElement('div');
+                div.className = 'time-option';
+                div.textContent = String(i).padStart(2, '0');
+                div.dataset.value = i;
+                minuteWheel.appendChild(div);
+            }
+        }
+        
+        function showTimePicker(type) {
+            currentTimePickerType = type;
+            document.getElementById('timePickerTitle').textContent = 
+                type === 'wake' ? 'Set Wake Time' : 'Set Bed Time';
+            
+            const modal = document.getElementById('timePickerModal');
+            modal.classList.add('active');
+            
+            // Set to current time or existing time
+            const existingTime = type === 'wake' ? todayData.wakeTime : todayData.sleepTime;
+            if (existingTime) {
+                const [h, m] = existingTime.split(':').map(Number);
+                scrollToTime(h, m);
+            } else {
+                const now = new Date();
+                scrollToTime(now.getHours(), now.getMinutes());
+            }
+        }
+        
+        function scrollToTime(hour, minute) {
+            const hourWheel = document.getElementById('hourWheel');
+            const minuteWheel = document.getElementById('minuteWheel');
+            hourWheel.scrollTop = hour * 40;
+            minuteWheel.scrollTop = minute * 40;
+        }
+        
+        function getSelectedTime() {
+            const hourWheel = document.getElementById('hourWheel');
+            const minuteWheel = document.getElementById('minuteWheel');
+            
+            const hourScroll = Math.round(hourWheel.scrollTop / 40);
+            const minuteScroll = Math.round(minuteWheel.scrollTop / 40);
+            
+            return {
+                hour: Math.max(0, Math.min(23, hourScroll)),
+                minute: Math.max(0, Math.min(59, minuteScroll))
+            };
+        }
+        
+        function confirmTime() {
+            const { hour, minute } = getSelectedTime();
+            const timeString = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+            
+            if (currentTimePickerType === 'wake') {
+                todayData.wakeTime = timeString;
+                document.getElementById('wakeBtn').classList.add('logged');
+                document.getElementById('wakeBtnText').textContent = '✅ Awake';
+                document.getElementById('wakeTime').textContent = `at ${timeString}`;
+                document.getElementById('wakeEdit').style.display = 'block';
+            } else {
+                todayData.sleepTime = timeString;
+                document.getElementById('sleepBtn').classList.add('logged');
+                document.getElementById('sleepBtnText').textContent = '✅ In Bed';
+                document.getElementById('sleepTime').textContent = `at ${timeString}`;
+                document.getElementById('sleepEdit').style.display = 'block';
+            }
+            
+            saveTodayData();
+            closeTimePicker();
+        }
+        
+        function closeTimePicker() {
+            document.getElementById('timePickerModal').classList.remove('active');
+        }
+        
+        function logWakeTime() {
+            const time = new Date().toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', hour12: false });
+            todayData.wakeTime = time;
+            saveTodayData();
+            document.getElementById('wakeBtn').classList.add('logged');
+            document.getElementById('wakeBtnText').textContent = '✅ Out of Bed';
+            document.getElementById('wakeTime').textContent = `at ${time}`;
+            document.getElementById('wakeEdit').style.display = 'block';
+        }
+        
+        function logSleepTime() {
+            const time = new Date().toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', hour12: false });
+            todayData.sleepTime = time;
+            saveTodayData();
+            document.getElementById('sleepBtn').classList.add('logged');
+            document.getElementById('sleepBtnText').textContent = '✅ In Bed';
+            document.getElementById('sleepTime').textContent = `at ${time}`;
+            document.getElementById('sleepEdit').style.display = 'block';
+        }
+        
+        function editWakeTime() {
+            showTimePicker('wake');
+        }
+        
+        function editSleepTime() {
+            showTimePicker('sleep');
+        }
+        
+        function loadDateData() {
+            const selectedDate = document.getElementById('dateInput').value;
+            if (selectedDate) {
+                currentEditDate = selectedDate;
+                todayData = loadDataForDate(selectedDate);
+                document.getElementById('currentDate').textContent = new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-AU', {
+                    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+                });
+                restoreUI();
+            }
+        }
+        
+        function goToToday() {
+            currentEditDate = getToday();
+            document.getElementById('dateInput').value = currentEditDate;
+            loadDateData();
+        }
+        
+        function loadDataForDate(date) {
+            const stored = localStorage.getItem(`tracker_${date}`);
+            return stored ? JSON.parse(stored) : {
+                date: date,
+                wakeTime: null,
+                sleepTime: null,
+                items: [],
+                counters: { coffeeMade: 0, coffeeBought: 0, alcohol: 0 },
+                timers: {
+                    lifeAdmin: { total: 0, running: false, startTime: null },
+                    reading: { total: 0, running: false, startTime: null },
+                    budget: { total: 0, running: false, startTime: null },
+                    videoGames: { total: 0, running: false, startTime: null },
+                    portuguese: { total: 0, running: false, startTime: null }
+                }
+            };
+        }
+        
+        function toggleItem(id) {
+            const elem = document.getElementById(`item-${id}`);
+            const check = elem.querySelector('.checkmark');
+            
+            if (elem.classList.contains('checked')) {
+                elem.classList.remove('checked');
+                check.textContent = '';
+                todayData.items = todayData.items.filter(i => i !== id);
+            } else {
+                elem.classList.add('checked');
+                check.textContent = '✓';
+                todayData.items.push(id);
+            }
+            saveTodayData();
+        }
+        
+        function updateCounterColor(counter) {
+            const elem = document.getElementById(`counter-${counter}`);
+            const value = todayData.counters[counter];
+            
+            // Check weekly totals for goals
+            const last7 = allData.slice(0, 7);
+            const weekTotal = last7.reduce((sum, d) => sum + (d.counters?.[counter] || 0), 0);
+            
+            if (counter === 'coffeeMade' && weekTotal > 2) {
+                elem.classList.add('exceeded');
+            } else if (counter === 'coffeeBought' && weekTotal > 1) {
+                elem.classList.add('exceeded');
+            } else if (counter === 'alcohol' && value > 0) {
+                elem.classList.add('exceeded');
+            } else {
+                elem.classList.remove('exceeded');
+            }
+        }
+        
+        function adjustCounter(counter, delta) {
+            todayData.counters[counter] = Math.max(0, (todayData.counters[counter] || 0) + delta);
+            document.getElementById(`counter-${counter}`).textContent = todayData.counters[counter];
+            updateCounterColor(counter);
+            saveTodayData();
+        }
+        
+        function startTimer(name) {
+            if (timerIntervals[name]) return;
+            todayData.timers[name].running = true;
+            todayData.timers[name].startTime = Date.now();
+            document.getElementById(`timer-${name}`).classList.add('active');
+            
+            timerIntervals[name] = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - todayData.timers[name].startTime) / 1000);
+                updateTimerDisplay(name, todayData.timers[name].total + elapsed);
+            }, 1000);
+            saveTodayData();
+        }
+        
+        function stopTimer(name) {
+            if (!timerIntervals[name]) return;
+            clearInterval(timerIntervals[name]);
+            delete timerIntervals[name];
+            
+            const elapsed = Math.floor((Date.now() - todayData.timers[name].startTime) / 1000);
+            todayData.timers[name].total += elapsed;
+            todayData.timers[name].running = false;
+            todayData.timers[name].startTime = null;
+            
+            document.getElementById(`timer-${name}`).classList.remove('active');
+            document.getElementById(`timer-${name}`).classList.add('completed');
+            updateTimerDisplay(name, todayData.timers[name].total);
+            saveTodayData();
+        }
+        
+        function resetTimer(name) {
+            if (timerIntervals[name]) {
+                clearInterval(timerIntervals[name]);
+                delete timerIntervals[name];
+            }
+            todayData.timers[name] = { total: 0, running: false, startTime: null };
+            document.getElementById(`timer-${name}`).classList.remove('active', 'completed');
+            updateTimerDisplay(name, 0);
+            saveTodayData();
+        }
+        
+        function adjustTimer(name, minutes) {
+            const seconds = minutes * 60;
+            todayData.timers[name].total = Math.max(0, todayData.timers[name].total + seconds);
+            updateTimerDisplay(name, todayData.timers[name].total);
+            if (todayData.timers[name].total > 0) {
+                document.getElementById(`timer-${name}`).classList.add('completed');
+            } else {
+                document.getElementById(`timer-${name}`).classList.remove('completed');
+            }
+            saveTodayData();
+        }
+        
+        function updateTimerDisplay(name, seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = seconds % 60;
+            document.getElementById(`display-${name}`).textContent = 
+                `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+        
+        function toggleSection(section) {
+            const content = document.getElementById(`section-${section}`);
+            const header = event.currentTarget;
+            
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                header.classList.remove('expanded');
+            } else {
+                content.classList.add('expanded');
+                header.classList.add('expanded');
+                if (section === 'weekly' || section === 'monthly' || section === 'quarterly' || section === 'yearly') {
+                    renderCleaningSection(section);
+                }
+            }
+        }
+        
+        function toggleCompleted(section) {
+            showCompletedSections[section] = !showCompletedSections[section];
+            document.getElementById(`toggle-${section}-text`).textContent = 
+                showCompletedSections[section] ? 'Hide Completed' : 'Show Completed';
+            renderCleaningSection(section);
+        }
+        
+        function renderCleaningSection(section) {
+            const container = document.getElementById(`${section}-tasks`);
+            const tasks = cleaningTasks[section];
+            const frequency = { weekly: 7, monthly: 30, quarterly: 90, yearly: 365 }[section];
+            const today = new Date();
+            
+            const tasksWithStatus = tasks.map(task => {
+                const lastDone = cleaningData[section][task.id] ? new Date(cleaningData[section][task.id]) : null;
+                const daysSince = lastDone ? Math.floor((today - lastDone) / (1000 * 60 * 60 * 24)) : 999;
+                const daysUntilDue = frequency - daysSince;
+                return { ...task, daysSince, daysUntilDue, lastDone };
+            });
+            
+            tasksWithStatus.sort((a, b) => {
+                if (a.daysUntilDue < 0 && b.daysUntilDue >= 0) return -1;
+                if (b.daysUntilDue < 0 && a.daysUntilDue >= 0) return 1;
+                if (a.daysUntilDue < 0 && b.daysUntilDue < 0) return a.daysUntilDue - b.daysUntilDue;
+                return a.daysUntilDue - b.daysUntilDue;
+            });
+            
+            const filtered = showCompletedSections[section] ? tasksWithStatus : tasksWithStatus.filter(t => t.daysUntilDue < 0 || t.daysUntilDue <= 3);
+            
+            container.innerHTML = filtered.map(task => {
+                const isOverdue = task.daysUntilDue < 0;
+                const badgeText = isOverdue 
+                    ? `Overdue ${Math.abs(task.daysUntilDue)}d`
+                    : task.daysUntilDue === 0 
+                    ? 'Due today'
+                    : `Due in ${task.daysUntilDue}d`;
+                const badgeClass = isOverdue ? 'overdue' : task.daysUntilDue <= 2 ? 'due-soon' : 'due-later';
+                const itemClass = isOverdue ? 'overdue' : '';
+                
+                return `
+                    <div class="checkbox-item ${itemClass}" onclick="toggleCleaningTask('${section}', '${task.id}')">
+                        <span class="emoji">${task.emoji}</span>
+                        <span class="label">${task.label}</span>
+                        <span class="due-badge ${badgeClass}">${badgeText}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function toggleCleaningTask(section, taskId) {
+            cleaningData[section][taskId] = new Date().toISOString();
+            saveCleaningData();
+            renderCleaningSection(section);
+            triggerConfetti();
+        }
+        
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(`${tab}-tab`).classList.add('active');
+            
+            if (tab === 'history') renderHistory();
+            if (tab === 'stats') renderStats();
+        }
+        
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            if (allData.length === 0) {
+                list.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">No history yet - start tracking!</p>';
+                return;
+            }
+            
+            list.innerHTML = allData.slice(0, 14).map(d => {
+                const date = new Date(d.date).toLocaleDateString('en-AU', { 
+                    weekday: 'short', month: 'short', day: 'numeric' 
+                });
+                
+                const sections = [];
+                
+                if (d.wakeTime || d.sleepTime) {
+                    const sleepInfo = [];
+                    if (d.sleepTime) sleepInfo.push(`🌙 Bed: ${d.sleepTime}`);
+                    if (d.wakeTime) sleepInfo.push(`☀️ Wake: ${d.wakeTime}`);
+                    sections.push(`<div style="margin-bottom: 5px;"><strong>Sleep:</strong> ${sleepInfo.join(', ')}</div>`);
+                }
+                
+                if (d.items && d.items.length > 0) {
+                    const activities = d.items.map(id => itemLabels[id] || id).join(', ');
+                    sections.push(`<div style="margin-bottom: 5px;"><strong>Activities:</strong> ${activities}</div>`);
+                }
+                
+                const counters = [];
+                if (d.counters?.coffeeMade) counters.push(`☕ Made: ${d.counters.coffeeMade}`);
+                if (d.counters?.coffeeBought) counters.push(`🥤 Bought: ${d.counters.coffeeBought}`);
+                if (d.counters?.alcohol) counters.push(`🍺 Alcohol: ${d.counters.alcohol}`);
+                if (counters.length > 0) {
+                    sections.push(`<div style="margin-bottom: 5px;"><strong>Diet:</strong> ${counters.join(', ')}</div>`);
+                }
+                
+                const timedActivities = [];
+                if (d.timers?.lifeAdmin?.total > 0) timedActivities.push(`📋 Life Admin: ${Math.floor(d.timers.lifeAdmin.total/60)}m`);
+                if (d.timers?.reading?.total > 0) timedActivities.push(`📚 Reading: ${Math.floor(d.timers.reading.total/60)}m`);
+                if (d.timers?.budget?.total > 0) timedActivities.push(`💰 Budget: ${Math.floor(d.timers.budget.total/60)}m`);
+                if (d.timers?.videoGames?.total > 0) timedActivities.push(`🎮 Video Games: ${Math.floor(d.timers.videoGames.total/60)}m`);
+                if (d.timers?.portuguese?.total > 0) timedActivities.push(`🇧🇷 Portuguese: ${Math.floor(d.timers.portuguese.total/60)}m`);
+                if (timedActivities.length > 0) {
+                    sections.push(`<div style="margin-bottom: 5px;"><strong>Time Spent:</strong> ${timedActivities.join(', ')}</div>`);
+                }
+                
+                const content = sections.length > 0 ? sections.join('') : '<div style="color: #666;">No data recorded</div>';
+                
+                return `
+                    <div class="history-item">
+                        <div class="history-date">${date}</div>
+                        <div class="history-details">${content}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        async function generateWeeklySummary() {
+            const button = event.target;
+            const summaryBox = document.getElementById('summaryBox');
+            
+            button.disabled = true;
+            button.textContent = '✨ Generating...';
+            summaryBox.classList.add('active');
+            summaryBox.innerHTML = '<div class="loading">Analyzing your progress... 🤔</div>';
+            
+            try {
+                const last7 = allData.slice(0, 7);
+                const prev7 = allData.slice(7, 14); // Previous week for comparison
+                const last30 = allData.slice(0, 30); // Full month for broader context
+                
+                // This week's data
+                const thisWeek = {
+                    gym: {
+                        weights: last7.filter(d => d.items?.includes('gymWeights')).length,
+                        cardio: last7.filter(d => d.items?.includes('gymCardio')).length
+                    },
+                    sunlight: {
+                        morning: last7.filter(d => d.items?.includes('morningSun')).length,
+                        afternoon: last7.filter(d => d.items?.includes('afternoonSun')).length
+                    },
+                    time: {
+                        lifeAdmin: (last7.reduce((s, d) => s + (d.timers?.lifeAdmin?.total || 0), 0) / 3600).toFixed(1),
+                        reading: (last7.reduce((s, d) => s + (d.timers?.reading?.total || 0), 0) / 3600).toFixed(1),
+                        budget: (last7.reduce((s, d) => s + (d.timers?.budget?.total || 0), 0) / 3600).toFixed(1),
+                        videoGames: (last7.reduce((s, d) => s + (d.timers?.videoGames?.total || 0), 0) / 3600).toFixed(1)
+                    },
+                    diet: {
+                        coffeeMade: last7.reduce((s, d) => s + (d.counters?.coffeeMade || 0), 0),
+                        coffeeBought: last7.reduce((s, d) => s + (d.counters?.coffeeBought || 0), 0),
+                        chocolate: last7.filter(d => d.items?.includes('chocolate')).length,
+                        alcohol: last7.reduce((s, d) => s + (d.counters?.alcohol || 0), 0)
+                    },
+                    sleep: last7.filter(d => d.wakeTime && d.sleepTime).length
+                };
+                
+                // Last week's data for comparison
+                const lastWeek = {
+                    gym: {
+                        weights: prev7.filter(d => d.items?.includes('gymWeights')).length,
+                        cardio: prev7.filter(d => d.items?.includes('gymCardio')).length
+                    },
+                    time: {
+                        lifeAdmin: (prev7.reduce((s, d) => s + (d.timers?.lifeAdmin?.total || 0), 0) / 3600).toFixed(1),
+                        videoGames: (prev7.reduce((s, d) => s + (d.timers?.videoGames?.total || 0), 0) / 3600).toFixed(1)
+                    }
+                };
+                
+                // Monthly progress
+                const monthlyProgress = {
+                    gym: {
+                        weights: `${last30.filter(d => d.items?.includes('gymWeights')).length}/13`,
+                        cardio: `${last30.filter(d => d.items?.includes('gymCardio')).length}/4`
+                    },
+                    time: {
+                        lifeAdmin: `${(last30.reduce((s, d) => s + (d.timers?.lifeAdmin?.total || 0), 0) / 3600).toFixed(1)}/15h`
+                    }
+                };
+                
+                const response = await fetch("https://api.anthropic.com/v1/messages", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        model: "claude-sonnet-4-20250514",
+                        max_tokens: 1000,
+                        messages: [{
+                            role: "user",
+                            content: `You're a supportive personal coach analyzing someone's weekly progress. Create an encouraging summary that puts this week in context of recent history.
+
+**This Week's Data:**
+- Gym: ${thisWeek.gym.weights}/3 weights sessions, ${thisWeek.gym.cardio}/1 cardio (Last week: ${lastWeek.gym.weights} weights, ${lastWeek.gym.cardio} cardio)
+- Monthly progress: ${monthlyProgress.gym.weights} weights, ${monthlyProgress.gym.cardio} cardio
+- Sunlight: ${thisWeek.sunlight.morning}/7 morning, ${thisWeek.sunlight.afternoon}/7 afternoon
+- Life Admin: ${thisWeek.time.lifeAdmin}h/3.5h (Last week: ${lastWeek.time.lifeAdmin}h | Month: ${monthlyProgress.time.lifeAdmin})
+- Reading: ${thisWeek.time.reading}h (goal: 1.2h/week)
+- Budget: ${thisWeek.time.budget}h (goal: 0.5h/week)
+- Video Games: ${thisWeek.time.videoGames}h/2.3h max (Last week: ${lastWeek.time.videoGames}h)
+- Coffee made: ${thisWeek.diet.coffeeMade}/2 max
+- Coffee bought: ${thisWeek.diet.coffeeBought}/1 max
+- Chocolate: ${thisWeek.diet.chocolate} days (goal: NONE until April)
+- Alcohol: ${thisWeek.diet.alcohol} drinks (goal: NONE until April)
+- Sleep tracking: ${thisWeek.sleep}/7 days
+
+**Instructions:**
+- Use **bold text** for section headings (like "This Week's Highlights"), NOT markdown ##
+- Compare this week to last week where relevant - acknowledge trends (improving, maintaining, or slipping)
+- Note monthly progress and whether on track despite any weekly misses
+- Be specific and honest - celebrate wins, gently note areas needing attention
+- Include a brief "Top Win 🏆" section
+- If needed, add "Area to Focus 🎯" (not "Watch Out")
+- Keep it friendly and motivating, but natural - no over-the-top praise
+- Use emojis but don't overdo it
+- Keep it concise (3-4 short paragraphs max)`
+                        }]
+                    })
+                });
+                
+                const data = await response.json();
+                const aiSummary = data.content?.[0]?.text || "Unable to generate summary. Try again!";
+                
+                summaryBox.innerHTML = aiSummary;
+                
+            } catch (error) {
+                summaryBox.innerHTML = `
+                    <div style="color: #f44336;">
+                        ❌ Couldn't generate summary. Check your internet connection and try again.
+                    </div>
+                `;
+            }
+            
+            button.disabled = false;
+            button.textContent = '✨ Generate Weekly Summary';
+        }
+        
+        function renderStats() {
+            const last7 = allData.slice(0, 7).reverse();
+            
+            // Gym stats
+            const weights = last7.filter(d => d.items?.includes('gymWeights')).length;
+            const cardio = last7.filter(d => d.items?.includes('gymCardio')).length;
+            document.getElementById('weightsCount').textContent = `${weights}/3`;
+            const weightsProgress = document.getElementById('weightsProgress');
+            weightsProgress.style.width = `${(weights/3)*100}%`;
+            weightsProgress.className = 'progress-fill' + (weights >= 3 ? ' met-goal' : '');
+            document.getElementById('cardioCount').textContent = `${cardio}/1`;
+            const cardioProgress = document.getElementById('cardioProgress');
+            cardioProgress.style.width = `${(cardio/1)*100}%`;
+            cardioProgress.className = 'progress-fill' + (cardio >= 1 ? ' met-goal' : '');
+            
+            // Time stats
+            const adminTotal = last7.reduce((s, d) => s + (d.timers?.lifeAdmin?.total || 0), 0);
+            const readTotal = last7.reduce((s, d) => s + (d.timers?.reading?.total || 0), 0);
+            const budgetTotal = last7.reduce((s, d) => s + (d.timers?.budget?.total || 0), 0);
+            const videoGamesTotal = last7.reduce((s, d) => s + (d.timers?.videoGames?.total || 0), 0);
+            const portugueseTotal = last7.reduce((s, d) => s + (d.timers?.portuguese?.total || 0), 0);
+            
+            const adminH = (adminTotal / 3600).toFixed(1);
+            document.getElementById('lifeAdminTime').textContent = `${adminH}h / 3.5h`;
+            const adminProgress = document.getElementById('lifeAdminProgress');
+            adminProgress.style.width = `${Math.min((adminH/3.5)*100, 100)}%`;
+            adminProgress.className = 'progress-fill' + (adminH >= 3.5 ? ' met-goal' : '');
+            
+            const readMin = Math.floor(readTotal / 60);
+            document.getElementById('readingTime').textContent = `${readMin}m / 70m`;
+            const readProgress = document.getElementById('readingProgress');
+            readProgress.style.width = `${Math.min((readMin/70)*100, 100)}%`;
+            readProgress.className = 'progress-fill' + (readMin >= 70 ? ' met-goal' : '');
+            
+            const budgetMin = Math.floor(budgetTotal / 60);
+            document.getElementById('budgetTime').textContent = `${budgetMin}m / 30m`;
+            const budgetProgress = document.getElementById('budgetProgress');
+            budgetProgress.style.width = `${Math.min((budgetMin/30)*100, 100)}%`;
+            budgetProgress.className = 'progress-fill' + (budgetMin >= 30 ? ' met-goal' : '');
+            
+            const videoGamesH = (videoGamesTotal/3600).toFixed(1);
+            document.getElementById('videoGamesTime').textContent = `${videoGamesH}h / 2.3h`;
+            const videoGamesProgress = document.getElementById('videoGamesProgress');
+            videoGamesProgress.style.width = `${Math.min((videoGamesH/2.3)*100, 100)}%`;
+            videoGamesProgress.className = 'progress-fill' + (videoGamesH > 2.3 ? ' exceeded-max' : '');
+            
+            const portugueseMin = Math.floor(portugueseTotal / 60);
+            document.getElementById('portugueseTime').textContent = `${portugueseMin}m / 70m`;
+            const portugueseProgress = document.getElementById('portugueseProgress');
+            portugueseProgress.style.width = `${Math.min((portugueseMin/70)*100, 100)}%`;
+            portugueseProgress.className = 'progress-fill' + (portugueseMin >= 70 ? ' met-goal' : '');
+            
+            // Diet stats
+            const coffeeMadeWeek = last7.reduce((s, d) => s + (d.counters?.coffeeMade || 0), 0);
+            const coffeeBoughtWeek = last7.reduce((s, d) => s + (d.counters?.coffeeBought || 0), 0);
+            const chocolateWeek = last7.filter(d => d.items?.includes('chocolate')).length;
+            const alcoholWeek = last7.reduce((s, d) => s + (d.counters?.alcohol || 0), 0);
+            
+            document.getElementById('coffeeMadeWeek').textContent = `${coffeeMadeWeek}/2`;
+            const coffeeMadeProgress = document.getElementById('coffeeMadeProgress');
+            coffeeMadeProgress.style.width = `${Math.min((coffeeMadeWeek/2)*100, 100)}%`;
+            coffeeMadeProgress.className = 'progress-fill' + (coffeeMadeWeek > 2 ? ' exceeded-max' : '');
+            
+            document.getElementById('coffeeBoughtWeek').textContent = `${coffeeBoughtWeek}/1`;
+            const coffeeBoughtProgress = document.getElementById('coffeeBoughtProgress');
+            coffeeBoughtProgress.style.width = `${Math.min((coffeeBoughtWeek/1)*100, 100)}%`;
+            coffeeBoughtProgress.className = 'progress-fill' + (coffeeBoughtWeek > 1 ? ' exceeded-max' : '');
+            
+            document.getElementById('chocolateWeek').textContent = `${chocolateWeek} days`;
+            const chocolateProgress = document.getElementById('chocolateProgress');
+            chocolateProgress.style.width = chocolateWeek > 0 ? '100%' : '0%';
+            chocolateProgress.className = 'progress-fill' + (chocolateWeek > 0 ? ' exceeded-max' : '');
+            
+            document.getElementById('alcoholWeek').textContent = `${alcoholWeek} drinks`;
+            const alcoholProgress = document.getElementById('alcoholProgress');
+            alcoholProgress.style.width = alcoholWeek > 0 ? '100%' : '0%';
+            alcoholProgress.className = 'progress-fill' + (alcoholWeek > 0 ? ' exceeded-max' : '');
+            
+            // MONTHLY STATS - Calculate for last 30 days
+            const last30 = allData.slice(0, 30);
+            
+            // Monthly Gym stats
+            const weightsMonth = last30.filter(d => d.items?.includes('gymWeights')).length;
+            const cardioMonth = last30.filter(d => d.items?.includes('gymCardio')).length;
+            document.getElementById('weightsCountMonth').textContent = `${weightsMonth}/13`;
+            const weightsProgressMonth = document.getElementById('weightsProgressMonth');
+            weightsProgressMonth.style.width = `${Math.min((weightsMonth/13)*100, 100)}%`;
+            weightsProgressMonth.className = 'progress-fill' + (weightsMonth >= 13 ? ' met-goal' : '');
+            document.getElementById('cardioCountMonth').textContent = `${cardioMonth}/4`;
+            const cardioProgressMonth = document.getElementById('cardioProgressMonth');
+            cardioProgressMonth.style.width = `${Math.min((cardioMonth/4)*100, 100)}%`;
+            cardioProgressMonth.className = 'progress-fill' + (cardioMonth >= 4 ? ' met-goal' : '');
+            
+            // Monthly Time stats
+            const adminTotalMonth = last30.reduce((s, d) => s + (d.timers?.lifeAdmin?.total || 0), 0);
+            const readTotalMonth = last30.reduce((s, d) => s + (d.timers?.reading?.total || 0), 0);
+            const budgetTotalMonth = last30.reduce((s, d) => s + (d.timers?.budget?.total || 0), 0);
+            const videoGamesTotalMonth = last30.reduce((s, d) => s + (d.timers?.videoGames?.total || 0), 0);
+            const portugueseTotalMonth = last30.reduce((s, d) => s + (d.timers?.portuguese?.total || 0), 0);
+            
+            const adminHMonth = (adminTotalMonth / 3600).toFixed(1);
+            document.getElementById('lifeAdminTimeMonth').textContent = `${adminHMonth}h / 15h`;
+            const adminProgressMonth = document.getElementById('lifeAdminProgressMonth');
+            adminProgressMonth.style.width = `${Math.min((adminHMonth/15)*100, 100)}%`;
+            adminProgressMonth.className = 'progress-fill' + (adminHMonth >= 15 ? ' met-goal' : '');
+            
+            const readHMonth = (readTotalMonth / 3600).toFixed(1);
+            document.getElementById('readingTimeMonth').textContent = `${readHMonth}h / 5h`;
+            const readProgressMonth = document.getElementById('readingProgressMonth');
+            readProgressMonth.style.width = `${Math.min((readHMonth/5)*100, 100)}%`;
+            readProgressMonth.className = 'progress-fill' + (readHMonth >= 5 ? ' met-goal' : '');
+            
+            const budgetHMonth = (budgetTotalMonth / 3600).toFixed(1);
+            document.getElementById('budgetTimeMonth').textContent = `${budgetHMonth}h / 2h`;
+            const budgetProgressMonth = document.getElementById('budgetProgressMonth');
+            budgetProgressMonth.style.width = `${Math.min((budgetHMonth/2)*100, 100)}%`;
+            budgetProgressMonth.className = 'progress-fill' + (budgetHMonth >= 2 ? ' met-goal' : '');
+            
+            const videoGamesHMonth = (videoGamesTotalMonth/3600).toFixed(1);
+            document.getElementById('videoGamesTimeMonth').textContent = `${videoGamesHMonth}h / 10h`;
+            const videoGamesProgressMonth = document.getElementById('videoGamesProgressMonth');
+            videoGamesProgressMonth.style.width = `${Math.min((videoGamesHMonth/10)*100, 100)}%`;
+            videoGamesProgressMonth.className = 'progress-fill' + (videoGamesHMonth > 10 ? ' exceeded-max' : '');
+            
+            const portugueseHMonth = (portugueseTotalMonth / 3600).toFixed(1);
+            document.getElementById('portugueseTimeMonth').textContent = `${portugueseHMonth}h / 5h`;
+            const portugueseProgressMonth = document.getElementById('portugueseProgressMonth');
+            portugueseProgressMonth.style.width = `${Math.min((portugueseHMonth/5)*100, 100)}%`;
+            portugueseProgressMonth.className = 'progress-fill' + (portugueseHMonth >= 5 ? ' met-goal' : '');
+            
+            // Monthly Diet stats
+            const coffeeMadeMonth = last30.reduce((s, d) => s + (d.counters?.coffeeMade || 0), 0);
+            const coffeeBoughtMonth = last30.reduce((s, d) => s + (d.counters?.coffeeBought || 0), 0);
+            const chocolateMonth = last30.filter(d => d.items?.includes('chocolate')).length;
+            const alcoholMonth = last30.reduce((s, d) => s + (d.counters?.alcohol || 0), 0);
+            
+            document.getElementById('coffeeMadeMonth').textContent = `${coffeeMadeMonth}/9`;
+            const coffeeMadeProgressMonth = document.getElementById('coffeeMadeProgressMonth');
+            coffeeMadeProgressMonth.style.width = `${Math.min((coffeeMadeMonth/9)*100, 100)}%`;
+            coffeeMadeProgressMonth.className = 'progress-fill' + (coffeeMadeMonth > 9 ? ' exceeded-max' : '');
+            
+            document.getElementById('coffeeBoughtMonth').textContent = `${coffeeBoughtMonth}/4`;
+            const coffeeBoughtProgressMonth = document.getElementById('coffeeBoughtProgressMonth');
+            coffeeBoughtProgressMonth.style.width = `${Math.min((coffeeBoughtMonth/4)*100, 100)}%`;
+            coffeeBoughtProgressMonth.className = 'progress-fill' + (coffeeBoughtMonth > 4 ? ' exceeded-max' : '');
+            
+            document.getElementById('chocolateMonth').textContent = `${chocolateMonth} days`;
+            const chocolateProgressMonth = document.getElementById('chocolateProgressMonth');
+            chocolateProgressMonth.style.width = chocolateMonth > 0 ? '100%' : '0%';
+            chocolateProgressMonth.className = 'progress-fill' + (chocolateMonth > 0 ? ' exceeded-max' : '');
+            
+            document.getElementById('alcoholMonth').textContent = `${alcoholMonth} drinks`;
+            const alcoholProgressMonth = document.getElementById('alcoholProgressMonth');
+            alcoholProgressMonth.style.width = alcoholMonth > 0 ? '100%' : '0%';
+            alcoholProgressMonth.className = 'progress-fill' + (alcoholMonth > 0 ? ' exceeded-max' : '');
+            
+            // Sleep chart
+            const labels = last7.map(d => new Date(d.date).toLocaleDateString('en-AU', { weekday: 'short' }));
+            const wakeData = last7.map(d => {
+                if (!d.wakeTime) return null;
+                const [h, m] = d.wakeTime.split(':').map(Number);
+                return h + m/60;
+            });
+            const sleepData = last7.map(d => {
+                if (!d.sleepTime) return null;
+                const [h, m] = d.sleepTime.split(':').map(Number);
+                return h + m/60;
+            });
+            
+            const ctx = document.getElementById('sleepChart');
+            if (sleepChart) sleepChart.destroy();
+            
+            sleepChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Wake Time',
+                            data: wakeData,
+                            borderColor: '#ff9800',
+                            backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                            pointBackgroundColor: '#ff9800',
+                            pointRadius: 6,
+                            tension: 0.2
+                        },
+                        {
+                            label: 'Bed Time',
+                            data: sleepData,
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            pointBackgroundColor: '#667eea',
+                            pointRadius: 6,
+                            tension: 0.2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    aspectRatio: 1.2,
+                    scales: {
+                        y: {
+                            min: 5,
+                            max: 25,
+                            ticks: {
+                                stepSize: 0.5,
+                                callback: v => {
+                                    const hour = v % 24;
+                                    const h = Math.floor(hour);
+                                    const m = (hour - h) * 60;
+                                    return m === 0 ? `${h}:00` : `${h}:30`;
+                                }
+                            },
+                            grid: {
+                                color: ctx => {
+                                    const value = ctx.tick.value;
+                                    if (value === 7 || value === 8 || value === 23 || value === 24) {
+                                        return 'rgba(255, 0, 0, 0.4)';
+                                    }
+                                    return 'rgba(0, 0, 0, 0.1)';
+                                },
+                                lineWidth: ctx => {
+                                    const value = ctx.tick.value;
+                                    return (value === 7 || value === 8 || value === 23 || value === 24) ? 2 : 1;
+                                },
+                                borderDash: ctx => {
+                                    const value = ctx.tick.value;
+                                    return (value === 7 || value === 8 || value === 23 || value === 24) ? [5, 5] : [];
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { labels: { usePointStyle: true }, onClick: null },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.parsed.y;
+                                    const hour = value % 24;
+                                    const h = Math.floor(hour);
+                                    const m = Math.round((hour - h) * 60);
+                                    return `${context.dataset.label}: ${h}:${String(m).padStart(2, '0')}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
