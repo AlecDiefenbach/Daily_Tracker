@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Tracker 2026</title>
+    <title>Daily Tracker 2026 - v1.0</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
@@ -579,12 +579,12 @@
     <div class="container">
         <div class="header">
             <h1>🎯 Daily Tracker</h1>
+            <div style="font-size: 12px; color: #999; margin-bottom: 10px;">v1.0</div>
             <div class="date" id="currentDate"></div>
             <div class="date-picker-container" style="display: none;" id="datePicker">
                 <label>📅 Edit Date:</label>
                 <input type="date" id="dateInput" onchange="loadDateData()">
                 <button onclick="goToToday()">Today</button>
-                <button onclick="if(confirm('Reset all data and load Sample Test Data (Jan 1-7, 2026)?')) clearAllDataAndLoadSample()" style="background: #f44336;">🔄 Reset</button>
             </div>
         </div>
         
@@ -1603,9 +1603,12 @@
             });
         }
         
-        // Version control for sample data
-        const SAMPLE_DATA_VERSION = '2026-01-07-v1';
+        // Version 1.0 - Production Release
+        // Sample data functions kept for testing purposes, but not auto-loaded
+        const APP_VERSION = 'v1.0';
         
+        // This function is available for testing but not called automatically
+        // To load sample data: Open browser console and type: clearAllDataAndLoadSample()
         function clearAllDataAndLoadSample() {
             // Clear all tracker data from localStorage
             const keysToRemove = [];
@@ -1632,10 +1635,7 @@
             });
             saveCleaningData();
             
-            // Mark this version as loaded
-            localStorage.setItem('sample_data_version', SAMPLE_DATA_VERSION);
-            
-            console.log('✅ All data cleared, Sample Test Data loaded, and cleaning tasks reset to today');
+            console.log('✅ Sample Test Data loaded - Dec 1, 2025 to Jan 7, 2026');
             
             // Update UI
             currentEditDate = '2026-01-07';
@@ -1670,14 +1670,8 @@
         todayData = loadTodayData();
         allData = loadAllData();
         
-        // Check if we need to load sample data (first run or outdated version)
-        const loadedVersion = localStorage.getItem('sample_data_version');
-        if (loadedVersion !== SAMPLE_DATA_VERSION) {
-            clearAllDataAndLoadSample();
-        } else if (allData.length === 0) {
-            // Fallback: if history is empty but version matches, reload sample data
-            allData = loadDummyData();
-            todayData = loadDataForDate('2026-01-07');
+        // V1.0: Start with clean slate - no auto-loading of sample data
+        // (Sample data functions remain available for future testing)
         }
         
         cleaningData = loadCleaningData();
