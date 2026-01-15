@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Tracker 2026 - v1.0</title>
+    <title>Daily Tracker 2026 - v1.1</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
@@ -579,7 +579,7 @@
     <div class="container">
         <div class="header">
             <h1>🎯 Daily Tracker</h1>
-            <div style="font-size: 12px; color: #999; margin-bottom: 10px;">v1.0</div>
+            <div style="font-size: 12px; color: #999; margin-bottom: 10px;">v1.1</div>
             <div class="date" id="currentDate"></div>
             <div class="date-picker-container" style="display: none;" id="datePicker">
                 <label>📅 Edit Date:</label>
@@ -715,11 +715,11 @@
                 </div>
             </div>
             
-            <!-- Daily Habits Section -->
+            <!-- Sunlight Section -->
             <div class="card">
                 <div class="expandable-section">
                     <div class="section-header" onclick="toggleSection('habits')">
-                        <span>✅ Daily Habits</span>
+                        <span>☀️ Sunlight</span>
                         <span class="arrow">▼</span>
                     </div>
                     <div class="section-content" id="section-habits">
@@ -921,7 +921,7 @@
                     <div class="section-content" id="section-weekly">
                         <div class="checkbox-grid" id="weekly-tasks"></div>
                         <button class="toggle-completed" onclick="toggleCompleted('weekly')">
-                            <span id="toggle-weekly-text">Show Completed</span>
+                            <span id="toggle-weekly-text">Show More</span>
                         </button>
                     </div>
                 </div>
@@ -935,7 +935,7 @@
                     <div class="section-content" id="section-monthly">
                         <div class="checkbox-grid" id="monthly-tasks"></div>
                         <button class="toggle-completed" onclick="toggleCompleted('monthly')">
-                            <span id="toggle-monthly-text">Show Completed</span>
+                            <span id="toggle-monthly-text">Show More</span>
                         </button>
                     </div>
                 </div>
@@ -949,7 +949,7 @@
                     <div class="section-content" id="section-quarterly">
                         <div class="checkbox-grid" id="quarterly-tasks"></div>
                         <button class="toggle-completed" onclick="toggleCompleted('quarterly')">
-                            <span id="toggle-quarterly-text">Show Completed</span>
+                            <span id="toggle-quarterly-text">Show More</span>
                         </button>
                     </div>
                 </div>
@@ -963,7 +963,7 @@
                     <div class="section-content" id="section-yearly">
                         <div class="checkbox-grid" id="yearly-tasks"></div>
                         <button class="toggle-completed" onclick="toggleCompleted('yearly')">
-                            <span id="toggle-yearly-text">Show Completed</span>
+                            <span id="toggle-yearly-text">Show More</span>
                         </button>
                     </div>
                 </div>
@@ -992,7 +992,16 @@
             
             <div class="card">
                 <div class="stat-section">
-                    <h3>💪 Gym Sessions This Week</h3>
+                    <h3>💪 Exercise This Week</h3>
+                    <div class="progress-bar-container">
+                        <div class="progress-label">
+                            <span>🏃 Daily Movement</span>
+                            <span id="movementCount">0/7</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="movementProgress"></div>
+                        </div>
+                    </div>
                     <div class="progress-bar-container">
                         <div class="progress-label">
                             <span>🏋️ Weights</span>
@@ -1556,6 +1565,10 @@
             const idx = allData.findIndex(d => d.date === todayData.date);
             if (idx >= 0) allData[idx] = {...todayData};
             else allData.unshift({...todayData});
+            
+            // Ensure data is always in reverse chronological order (newest first)
+            allData.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
             localStorage.setItem('tracker_history', JSON.stringify(allData));
         }
         
@@ -1605,7 +1618,25 @@
         
         // Version 1.0 - Production Release
         // Sample data functions kept for testing purposes, but not auto-loaded
-        const APP_VERSION = 'v1.0';
+        const APP_VERSION = 'v1.1';
+        
+        // Clear all data and start fresh (for production use)
+        function clearAllData() {
+            // Clear all tracker data from localStorage
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('tracker_') || key === 'tracker_history' || key === 'cleaning_data' || key === 'streaks') {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach(key => localStorage.removeItem(key));
+            
+            console.log('✅ All data cleared');
+            
+            // Reload the page to start fresh
+            location.reload();
+        }
         
         // This function is available for testing but not called automatically
         // To load sample data: Open browser console and type: clearAllDataAndLoadSample()
@@ -1669,6 +1700,9 @@
         
         todayData = loadTodayData();
         allData = loadAllData();
+        
+        // Ensure data is in reverse chronological order (newest first)
+        allData.sort((a, b) => new Date(b.date) - new Date(a.date));
         
         // V1.0: Start with clean slate - no auto-loading of sample data
         // (Sample data functions remain available for future testing)
@@ -2018,7 +2052,7 @@
         function toggleCompleted(section) {
             showCompletedSections[section] = !showCompletedSections[section];
             document.getElementById(`toggle-${section}-text`).textContent = 
-                showCompletedSections[section] ? 'Hide Completed' : 'Show Completed';
+                showCompletedSections[section] ? 'Show Less' : 'Show More';
             renderCleaningSection(section);
         }
         
@@ -2026,6 +2060,7 @@
             const container = document.getElementById(`${section}-tasks`);
             const tasks = cleaningTasks[section];
             const frequency = { weekly: 7, monthly: 30, quarterly: 90, yearly: 365 }[section];
+            const showThreshold = { weekly: 4, monthly: 8, quarterly: 30, yearly: 90 }[section]; // Days to show by default
             const today = new Date();
             
             const tasksWithStatus = tasks.map(task => {
@@ -2042,7 +2077,10 @@
                 return a.daysUntilDue - b.daysUntilDue;
             });
             
-            const filtered = showCompletedSections[section] ? tasksWithStatus : tasksWithStatus.filter(t => t.daysUntilDue < 0 || t.daysUntilDue <= 3);
+            // Filter: show overdue OR within threshold, or show all if expanded
+            const filtered = showCompletedSections[section] 
+                ? tasksWithStatus 
+                : tasksWithStatus.filter(t => t.daysUntilDue < 0 || t.daysUntilDue <= showThreshold);
             
             container.innerHTML = filtered.map(task => {
                 const isOverdue = task.daysUntilDue < 0;
@@ -2079,6 +2117,15 @@
             
             if (tab === 'history') renderHistory();
             if (tab === 'stats') renderStats();
+            if (tab === 'cleaning') {
+                // Re-render all visible cleaning sections to update due dates
+                ['weekly', 'monthly', 'quarterly', 'yearly'].forEach(section => {
+                    const header = document.querySelector(`[onclick*="toggleSection('${section}')"]`);
+                    if (header && header.classList.contains('expanded')) {
+                        renderCleaningSection(section);
+                    }
+                });
+            }
         }
         
         function renderHistory() {
@@ -2185,95 +2232,140 @@
                     cardio: last30.filter(d => d.items?.includes('gymCardio')).length
                 };
                 
+                // Calculate additional insights
+                const sunlightDays = last7.filter(d => d.items?.includes('morningSun')).length;
+                const avgAdmin = parseFloat(thisWeek.time.lifeAdmin);
+                const avgReading = parseFloat(thisWeek.time.reading);
+                const consistencyScore = thisWeek.sleep;
+                
                 // Generate summary
-                let summary = '<div style="line-height: 1.6;">';
+                let summary = '<div style="line-height: 1.7;">';
                 
-                // Top section
-                summary += '<div style="margin-bottom: 15px;"><strong style="font-size: 18px;">📊 This Week\'s Summary</strong></div>';
+                // Header with week date range
+                const weekStart = new Date(last7[0].date).toLocaleDateString('en-AU', { month: 'short', day: 'numeric' });
+                const weekEnd = new Date(last7[6].date).toLocaleDateString('en-AU', { month: 'short', day: 'numeric' });
+                summary += `<div style="margin-bottom: 18px;"><strong style="font-size: 18px;">📊 Week of ${weekStart} - ${weekEnd}</strong></div>`;
                 
-                // Gym performance
+                // Performance Overview
+                summary += '<div style="background: #f5f5f5; padding: 12px; border-radius: 8px; margin-bottom: 15px;">';
+                summary += '<strong>Performance Overview</strong><br>';
+                
+                // Gym with context
                 const gymMet = thisWeek.gym.weights >= 3 && thisWeek.gym.cardio >= 1;
                 const gymChange = thisWeek.gym.weights - lastWeek.weights;
-                summary += '<div style="margin-bottom: 12px;">';
-                summary += `<strong>💪 Gym:</strong> ${thisWeek.gym.weights}/3 weights, ${thisWeek.gym.cardio}/1 cardio`;
-                if (gymMet) {
-                    summary += ' ✅ <span style="color: #4CAF50;">Goal met!</span>';
-                } else {
-                    summary += ` - Monthly: ${monthlyGym.weights}/13 weights`;
-                    if (monthlyGym.weights >= 10) summary += ' <span style="color: #ff9800;">(Still on track monthly!)</span>';
+                summary += `<span style="color: ${gymMet ? '#4CAF50' : '#ff9800'};">●</span> `;
+                summary += `<strong>Gym:</strong> ${thisWeek.gym.weights}/3 weights, ${thisWeek.gym.cardio}/1 cardio`;
+                if (gymChange !== 0) {
+                    summary += ` (${gymChange > 0 ? '+' : ''}${gymChange} vs last week)`;
                 }
-                if (gymChange > 0) summary += ` <span style="color: #4CAF50;">(+${gymChange} from last week)</span>`;
-                else if (gymChange < 0) summary += ` <span style="color: #ff9800;">(${gymChange} from last week)</span>`;
-                summary += '</div>';
+                if (!gymMet && monthlyGym.weights >= 10) {
+                    summary += ` - Monthly on track at ${monthlyGym.weights}/13`;
+                }
+                summary += '<br>';
                 
-                // Life admin
-                const adminMet = parseFloat(thisWeek.time.lifeAdmin) >= 3.5;
-                const adminChange = (parseFloat(thisWeek.time.lifeAdmin) - parseFloat(lastWeek.lifeAdmin)).toFixed(1);
-                summary += '<div style="margin-bottom: 12px;">';
-                summary += `<strong>📋 Life Admin:</strong> ${thisWeek.time.lifeAdmin}h/3.5h`;
-                if (adminMet) summary += ' ✅';
-                if (parseFloat(adminChange) > 0) summary += ` <span style="color: #4CAF50;">(+${adminChange}h from last week)</span>`;
-                else if (parseFloat(adminChange) < 0) summary += ` <span style="color: #ff9800;">(${adminChange}h from last week)</span>`;
-                summary += '</div>';
+                // Life admin with productivity context
+                const adminMet = avgAdmin >= 3.5;
+                const adminChange = (avgAdmin - parseFloat(lastWeek.lifeAdmin)).toFixed(1);
+                summary += `<span style="color: ${adminMet ? '#4CAF50' : '#ff9800'};">●</span> `;
+                summary += `<strong>Life Admin:</strong> ${thisWeek.time.lifeAdmin}h/3.5h`;
+                if (parseFloat(adminChange) !== 0) {
+                    summary += ` (${parseFloat(adminChange) > 0 ? '+' : ''}${adminChange}h vs last week)`;
+                }
+                summary += '<br>';
                 
-                // Reading & Budget
-                summary += '<div style="margin-bottom: 12px;">';
-                summary += `<strong>📚 Reading:</strong> ${thisWeek.time.reading}h | `;
-                summary += `<strong>💰 Budget:</strong> ${thisWeek.time.budget}h`;
-                summary += '</div>';
+                // Reading & Portuguese
+                const readingMet = avgReading >= 1.2;
+                summary += `<span style="color: ${readingMet ? '#4CAF50' : '#999'};">●</span> `;
+                summary += `<strong>Reading:</strong> ${thisWeek.time.reading}h / `;
+                summary += `<strong>Portuguese:</strong> ${(parseFloat(thisWeek.time.videoGames) / 60).toFixed(0)}m`;
+                summary += '<br>';
                 
-                // Video games
-                const gamesOver = parseFloat(thisWeek.time.videoGames) > 2.3;
-                summary += '<div style="margin-bottom: 12px;">';
-                summary += `<strong>🎮 Video Games:</strong> ${thisWeek.time.videoGames}h/2.3h`;
-                if (gamesOver) summary += ' ⚠️ <span style="color: #f44336;">Over limit</span>';
-                else summary += ' ✅';
-                summary += '</div>';
-                
-                // Diet
+                // Diet & discipline
                 const dietClean = thisWeek.diet.chocolate === 0 && thisWeek.diet.alcohol === 0;
-                summary += '<div style="margin-bottom: 12px;">';
-                summary += `<strong>🍽️ Diet:</strong> `;
+                summary += `<span style="color: ${dietClean ? '#4CAF50' : '#f44336'};">●</span> `;
+                summary += `<strong>Diet Discipline:</strong> `;
                 if (dietClean) {
-                    summary += '<span style="color: #4CAF50;">Clean week! No chocolate or alcohol ✅</span>';
+                    summary += 'Clean week ✅';
                 } else {
-                    if (thisWeek.diet.chocolate > 0) summary += `🍫 ${thisWeek.diet.chocolate} days chocolate `;
-                    if (thisWeek.diet.alcohol > 0) summary += `🍺 ${thisWeek.diet.alcohol} drinks `;
-                    summary += '<span style="color: #ff9800;">(Goal: none until April)</span>';
+                    const issues = [];
+                    if (thisWeek.diet.chocolate > 0) issues.push(`${thisWeek.diet.chocolate}d chocolate`);
+                    if (thisWeek.diet.alcohol > 0) issues.push(`${thisWeek.diet.alcohol} drinks`);
+                    summary += issues.join(', ');
                 }
                 summary += '</div>';
                 
-                // Sleep
-                summary += '<div style="margin-bottom: 15px;">';
-                summary += `<strong>😴 Sleep Tracking:</strong> ${thisWeek.sleep}/7 days`;
-                if (thisWeek.sleep === 7) summary += ' 🔥 Perfect week!';
+                // Key Insights section
+                summary += '<div style="margin-bottom: 15px;"><strong>Insights & Patterns</strong><br>';
+                
+                // Consistency insight
+                if (consistencyScore === 7) {
+                    summary += '• Perfect sleep tracking consistency this week<br>';
+                } else if (consistencyScore >= 5) {
+                    summary += `• Tracked ${consistencyScore}/7 days - good consistency<br>`;
+                } else {
+                    summary += `• Only ${consistencyScore}/7 days tracked - aim for better consistency<br>`;
+                }
+                
+                // Sunlight pattern
+                if (sunlightDays >= 6) {
+                    summary += `• Strong sunlight habit: ${sunlightDays}/7 days morning sun<br>`;
+                } else if (sunlightDays >= 4) {
+                    summary += `• Decent sunlight exposure: ${sunlightDays}/7 days<br>`;
+                } else {
+                    summary += `• Sunlight lacking: only ${sunlightDays}/7 days - prioritize morning exposure<br>`;
+                }
+                
+                // Video games context
+                const gamesOver = parseFloat(thisWeek.time.videoGames) > 2.3;
+                if (gamesOver) {
+                    const excess = (parseFloat(thisWeek.time.videoGames) - 2.3).toFixed(1);
+                    summary += `• Video games ${excess}h over limit (${thisWeek.time.videoGames}h/2.3h)<br>`;
+                } else if (parseFloat(thisWeek.time.videoGames) > 0) {
+                    summary += `• Video games within limit (${thisWeek.time.videoGames}h/2.3h)<br>`;
+                }
+                
+                // Comparative insight
+                if (gymChange > 0 && adminChange > 0) {
+                    summary += '• Both gym and life admin improved - strong momentum<br>';
+                } else if (gymChange < 0 && parseFloat(adminChange) < 0) {
+                    summary += '• Both gym and life admin declined - refocus needed<br>';
+                }
+                
                 summary += '</div>';
                 
-                // Top win
+                // Highlight boxes
                 let topWin = '';
-                if (gymMet && dietClean) topWin = 'Gym goals met AND clean diet! 💪';
-                else if (gymMet) topWin = 'Hit all gym targets! 🏋️';
-                else if (dietClean) topWin = 'Perfect diet discipline! 🎯';
-                else if (adminMet) topWin = 'Crushed life admin! 📋';
-                else if (thisWeek.sleep === 7) topWin = 'Perfect sleep tracking! 😴';
-                else if (gymChange > 0) topWin = 'Gym improvement from last week! 📈';
+                if (gymMet && dietClean && adminMet) topWin = 'Triple achievement: gym, diet, and life admin all on target';
+                else if (gymMet && dietClean) topWin = 'Gym goals met AND perfect diet discipline';
+                else if (gymMet) topWin = 'Hit all gym targets for the week';
+                else if (dietClean && consistencyScore === 7) topWin = 'Perfect diet discipline and tracking consistency';
+                else if (adminMet && avgAdmin > 4.5) topWin = 'Exceptional life admin output this week';
+                else if (gymChange >= 2) topWin = 'Significant gym improvement from last week';
+                else if (consistencyScore === 7) topWin = 'Perfect week of tracking consistency';
                 
                 if (topWin) {
-                    summary += `<div style="background: #e8f5e9; padding: 10px; border-radius: 8px; margin-bottom: 12px;">`;
-                    summary += `<strong>🏆 Top Win:</strong> ${topWin}`;
+                    summary += `<div style="background: #e8f5e9; padding: 12px; border-radius: 8px; margin-bottom: 12px;">`;
+                    summary += `<strong>🏆 Top Achievement:</strong> ${topWin}`;
                     summary += `</div>`;
                 }
                 
-                // Area to focus
+                // Focus area
                 let focus = '';
-                if (!gymMet && monthlyGym.weights < 10) focus = 'Gym sessions need attention 🎯';
-                else if (gamesOver) focus = 'Video game time exceeded limit ⏱️';
-                else if (!dietClean) focus = 'Diet discipline until April 🍽️';
-                else if (!adminMet) focus = 'Life admin time could use a boost 📋';
+                if (!gymMet && monthlyGym.weights < 10) {
+                    focus = 'Gym frequency below target - need 3x/week to stay on track';
+                } else if (gamesOver) {
+                    focus = 'Video game time exceeded - maintain 2.3h/week limit';
+                } else if (!dietClean) {
+                    focus = 'Diet discipline slipped - recommit to no alcohol/chocolate until April';
+                } else if (!adminMet) {
+                    focus = 'Life admin below 3.5h target - schedule dedicated blocks';
+                } else if (consistencyScore < 5) {
+                    focus = 'Tracking consistency low - aim for daily logging';
+                }
                 
                 if (focus) {
-                    summary += `<div style="background: #fff3e0; padding: 10px; border-radius: 8px;">`;
-                    summary += `<strong>🎯 Area to Focus:</strong> ${focus}`;
+                    summary += `<div style="background: #fff3e0; padding: 12px; border-radius: 8px;">`;
+                    summary += `<strong>🎯 Priority Focus:</strong> ${focus}`;
                     summary += `</div>`;
                 }
                 
@@ -2296,7 +2388,16 @@
         function renderStats() {
             const last7 = allData.slice(0, 7).reverse();
             
-            // Gym stats
+            // Exercise stats
+            const exerciseItems = ['gymWeights', 'gymCardio', 'walk', 'yoga', 'stretching', 'surf'];
+            const movementDays = last7.filter(d => 
+                d.items?.some(item => exerciseItems.includes(item))
+            ).length;
+            document.getElementById('movementCount').textContent = `${movementDays}/7`;
+            const movementProgress = document.getElementById('movementProgress');
+            movementProgress.style.width = `${(movementDays/7)*100}%`;
+            movementProgress.className = 'progress-fill' + (movementDays >= 7 ? ' met-goal' : '');
+            
             const weights = last7.filter(d => d.items?.includes('gymWeights')).length;
             const cardio = last7.filter(d => d.items?.includes('gymCardio')).length;
             document.getElementById('weightsCount').textContent = `${weights}/3`;
