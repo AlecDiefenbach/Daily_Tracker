@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Tracker 2026 - v1.2</title>
+    <title>Daily Tracker 2026 - v2.0</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
@@ -767,7 +767,7 @@
         <div class="header">
             <h1 style="display: flex; align-items: center; justify-content: space-between;">
                 <span>🎯 Daily Tracker</span>
-                <span style="font-size: 14px; color: #999; font-weight: normal;">v1.2</span>
+                <span style="font-size: 14px; color: #999; font-weight: normal;">v2.0</span>
             </h1>
             <div class="date" id="currentDate"></div>
             <div class="date-picker-container" style="display: none;" id="datePicker">
@@ -1242,14 +1242,20 @@
             
             <div class="card">
                 <h2>📊 Mood, Sleep Quality & Skin - Last 7 Days</h2>
-                <div style="height: 450px; position: relative;">
-                    <canvas id="moodChart"></canvas>
+                <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                    <div style="min-width: 500px; height: 450px; position: relative;">
+                        <canvas id="moodChart"></canvas>
+                    </div>
                 </div>
             </div>
             
             <div class="card">
                 <h2>😴 Sleep Patterns - Last 7 Days</h2>
-                <canvas id="sleepChart" style="height: 400px;"></canvas>
+                <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                    <div style="min-width: 500px;">
+                        <canvas id="sleepChart" style="height: 400px;"></canvas>
+                    </div>
+                </div>
             </div>
             
             <div class="card">
@@ -2096,12 +2102,15 @@
         }
         
         function toggleExItem(exId, event) {
-            if (event.target.tagName === 'INPUT') return;
+            // Prevent native checkbox toggle - we control state via data
+            if (event.target.tagName === 'INPUT') {
+                event.preventDefault();
+            }
             const cb = document.getElementById(`cb-${exId}`);
-            cb.checked = !cb.checked;
-            if (cb.checked) {
+            const willCheck = !cb.checked;
+            cb.checked = willCheck;
+            if (willCheck) {
                 if (!todayData.exercises[exId] || todayData.exercises[exId].length === 0) {
-                    // Find whether this exercise is weighted or reps-only
                     let weighted = true;
                     Object.values(exercises).flat().forEach(ex => {
                         if (ex.id === exId) weighted = ex.weighted;
@@ -2111,7 +2120,6 @@
                 }
                 renderWeightsExercises();
             } else {
-                // Untick: remove all sets
                 delete todayData.exercises[exId];
                 saveTodayData();
                 renderWeightsExercises();
@@ -2177,7 +2185,7 @@
         
         // Version 1.0 - Production Release
         // Sample data functions kept for testing purposes, but not auto-loaded
-        const APP_VERSION = 'v1.2';
+        const APP_VERSION = 'v2.0';
         
         // Clear all data and start fresh (for production use)
         function clearAllData() {
@@ -3129,7 +3137,13 @@
             alcoholProgressMonth.className = 'progress-fill' + (alcoholMonth > 0 ? ' exceeded-max' : '');
             
             // Sleep chart
-            const labels = last7.map(d => new Date(d.date).toLocaleDateString('en-AU', { weekday: 'short' }));
+            const labels = last7.map(d => {
+                const date = new Date(d.date + 'T00:00:00');
+                const day = date.toLocaleDateString('en-AU', { weekday: 'short' });
+                const num = date.getDate();
+                const month = date.toLocaleDateString('en-AU', { month: 'short' });
+                return `${day} ${num} ${month}`;
+            });
             const wakeData = last7.map(d => {
                 if (!d.wakeTime) return null;
                 const [h, m] = d.wakeTime.split(':').map(Number);
@@ -3236,7 +3250,7 @@
                 const date = new Date();
                 date.setDate(date.getDate() - i);
                 const dateStr = date.toISOString().split('T')[0];
-                const dayLabel = date.toLocaleDateString('en-AU', { weekday: 'short' });
+                const dayLabel = date.toLocaleDateString('en-AU', { weekday: 'short' }) + ' ' + date.getDate() + ' ' + date.toLocaleDateString('en-AU', { month: 'short' });
                 moodLabels.push(dayLabel);
                 
                 // Find matching entry in allData
