@@ -10,6 +10,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
+```
     body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -1825,6 +1826,22 @@
         
         // Update streak display
         updateStreaks();
+        
+        // Restore mood/sleep quality/skin sliders
+        const moodVal = todayData.mood || 5;
+        const sleepQVal = todayData.sleepQuality || 5;
+        const skinVal = todayData.skin || 5;
+        document.getElementById('moodSlider').value = moodVal;
+        document.getElementById('sleepQualitySlider').value = sleepQVal;
+        document.getElementById('skinSlider').value = skinVal;
+        updateMoodTracking('mood', moodVal);
+        updateMoodTracking('sleepQuality', sleepQVal);
+        updateMoodTracking('skin', skinVal);
+        
+        // Restore exercise tab data
+        document.getElementById('bikeTime').value = todayData.bikeTime || 0;
+        document.getElementById('bikeCalories').value = todayData.bikeCalories || 0;
+        renderWeightsExercises();
     }
     
     function saveTodayData() {
@@ -2087,15 +2104,22 @@
         if (event.target.tagName === 'INPUT') return;
         const cb = document.getElementById(`cb-${exId}`);
         cb.checked = !cb.checked;
-        const details = document.getElementById(`ex-${exId}`);
         if (cb.checked) {
-            details.classList.add('active');
-            if (!todayData.exercises[exId]) {
-                todayData.exercises[exId] = [];
-                renderWeightsExercises();
+            if (!todayData.exercises[exId] || todayData.exercises[exId].length === 0) {
+                // Find whether this exercise is weighted or reps-only
+                let weighted = true;
+                Object.values(exercises).flat().forEach(ex => {
+                    if (ex.id === exId) weighted = ex.weighted;
+                });
+                todayData.exercises[exId] = [weighted ? {weight: 0, reps: 0} : {reps: 0}];
+                saveTodayData();
             }
+            renderWeightsExercises();
         } else {
-            details.classList.remove('active');
+            // Untick: remove all sets
+            delete todayData.exercises[exId];
+            saveTodayData();
+            renderWeightsExercises();
         }
     }
     
@@ -3207,10 +3231,25 @@
         const moodCtx = document.getElementById('moodChart');
         if (moodChart) moodChart.destroy();
         
-        const moodLabels = labels;  // Same day labels as sleep chart
-        const moodData = last7.map(d => d.mood || null);
-        const sleepQualityData = last7.map(d => d.sleepQuality || null);
-        const skinData = last7.map(d => d.skin || null);
+        // Build a proper 7-day consecutive range (today back to 6 days ago)
+        const moodLabels = [];
+        const moodData = [];
+        const sleepQualityData = [];
+        const skinData = [];
+        
+        for (let i = 6; i >= 0; i--) {
+            const date = new Date();
+            date.setDate(date.getDate() - i);
+            const dateStr = date.toISOString().split('T')[0];
+            const dayLabel = date.toLocaleDateString('en-AU', { weekday: 'short' });
+            moodLabels.push(dayLabel);
+            
+            // Find matching entry in allData
+            const entry = allData.find(d => d.date === dateStr);
+            moodData.push(entry?.mood || null);
+            sleepQualityData.push(entry?.sleepQuality || null);
+            skinData.push(entry?.skin || null);
+        }
         
         moodChart = new Chart(moodCtx, {
             type: 'line',
