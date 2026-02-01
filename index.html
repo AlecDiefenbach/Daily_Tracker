@@ -755,6 +755,44 @@
             display: block;
         }
         
+        /* Chart navigation */
+        .chart-nav {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .chart-nav-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .chart-nav-btn:active {
+            transform: scale(0.9);
+            background: #5568d3;
+        }
+        .chart-nav-btn:disabled {
+            background: #ccc;
+            cursor: default;
+        }
+        .chart-nav-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            min-width: 130px;
+            text-align: center;
+        }
+
         .loading {
             text-align: center;
             padding: 20px;
@@ -1241,20 +1279,30 @@
             </div>
             
             <div class="card">
-                <h2>📊 Mood, Sleep Quality & Skin - Last 7 Days</h2>
-                <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
-                    <div style="min-width: 500px; height: 450px; position: relative;">
-                        <canvas id="moodChart"></canvas>
-                    </div>
+                <h2>📊 Mood, Sleep Quality & Skin</h2>
+                <div class="chart-nav">
+                    <button class="chart-nav-btn" onclick="shiftChart('mood', -7)">◀◀</button>
+                    <button class="chart-nav-btn" onclick="shiftChart('mood', -1)">◀</button>
+                    <span class="chart-nav-label" id="moodChartLabel"></span>
+                    <button class="chart-nav-btn" onclick="shiftChart('mood', 1)">▶</button>
+                    <button class="chart-nav-btn" onclick="shiftChart('mood', 7)">▶▶</button>
+                </div>
+                <div style="height: 450px; position: relative;">
+                    <canvas id="moodChart"></canvas>
                 </div>
             </div>
             
             <div class="card">
-                <h2>😴 Sleep Patterns - Last 7 Days</h2>
-                <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
-                    <div style="min-width: 500px;">
-                        <canvas id="sleepChart" style="height: 400px;"></canvas>
-                    </div>
+                <h2>😴 Sleep Patterns</h2>
+                <div class="chart-nav">
+                    <button class="chart-nav-btn" onclick="shiftChart('sleep', -7)">◀◀</button>
+                    <button class="chart-nav-btn" onclick="shiftChart('sleep', -1)">◀</button>
+                    <span class="chart-nav-label" id="sleepChartLabel"></span>
+                    <button class="chart-nav-btn" onclick="shiftChart('sleep', 1)">▶</button>
+                    <button class="chart-nav-btn" onclick="shiftChart('sleep', 7)">▶▶</button>
+                </div>
+                <div style="position: relative;">
+                    <canvas id="sleepChart" style="height: 400px;"></canvas>
                 </div>
             </div>
             
@@ -1503,6 +1551,9 @@
         let showCompletedSections = { weekly: false, monthly: false, quarterly: false, yearly: false };
         let sleepChart = null;
         let moodChart = null;
+        let moodChartOffset = 0; // days offset from "today as right edge"
+        let sleepChartOffset = 0;
+        const CHART_WINDOW = 14; // number of days visible at once
         let currentTimePickerType = null;
         let streakData = {};
         let currentEditDate;
@@ -3136,28 +3187,107 @@
             alcoholProgressMonth.style.width = alcoholMonth > 0 ? '100%' : '0%';
             alcoholProgressMonth.className = 'progress-fill' + (alcoholMonth > 0 ? ' exceeded-max' : '');
             
-            // Sleep chart
-            const labels = last7.map(d => {
-                const date = new Date(d.date + 'T00:00:00');
-                const day = date.toLocaleDateString('en-AU', { weekday: 'short' });
-                const num = date.getDate();
-                const month = date.toLocaleDateString('en-AU', { month: 'short' });
-                return `${day} ${num} ${month}`;
-            });
-            const wakeData = last7.map(d => {
-                if (!d.wakeTime) return null;
-                const [h, m] = d.wakeTime.split(':').map(Number);
+            renderSleepChart();
+            renderMoodChart();
+        }
+
+        // --- Shared chart helpers ---
+
+        // Builds a consecutive date range array (chronological) for the visible window.
+        // offset = how many days the right edge is shifted back from today (0 = today is right edge)
+        function getChartDateRange(offset) {
+            const rightEdge = new Date();
+            rightEdge.setDate(rightEdge.getDate() - offset);
+            const labels = [];
+            const dateStrs = [];
+            for (let i = CHART_WINDOW - 1; i >= 0; i--) {
+                const d = new Date(rightEdge);
+                d.setDate(d.getDate() - i);
+                const dateStr = d.toISOString().split('T')[0];
+                const label = d.toLocaleDateString('en-AU', { weekday: 'short' }) + ' ' + d.getDate() + ' ' + d.toLocaleDateString('en-AU', { month: 'short' });
+                dateStrs.push(dateStr);
+                labels.push(label);
+            }
+            return { labels, dateStrs, rightEdge };
+        }
+
+        function formatNavLabel(offset) {
+            const { labels } = getChartDateRange(offset);
+            // Extract just "d Mon" from first and last label for compact display
+            const first = labels[0].split(' ').slice(1).join(' ');
+            const last = labels[labels.length - 1].split(' ').slice(1).join(' ');
+            return `${first} – ${last}`;
+        }
+
+        // Returns the max offset allowed (can't scroll past earliest data)
+        function getMaxOffset() {
+            if (allData.length === 0) return 0;
+            const sorted = [...allData].sort((a, b) => a.date.localeCompare(b.date));
+            const earliest = new Date(sorted[0].date + 'T00:00:00');
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const daysDiff = Math.floor((today - earliest) / (1000*60*60*24));
+            // Allow scrolling so the earliest date can appear at the left edge
+            return Math.max(0, daysDiff - CHART_WINDOW + 1);
+        }
+
+        function shiftChart(type, delta) {
+            const maxOffset = getMaxOffset();
+            if (type === 'mood') {
+                moodChartOffset = Math.max(0, Math.min(maxOffset, moodChartOffset + delta));
+                renderMoodChart();
+            } else {
+                sleepChartOffset = Math.max(0, Math.min(maxOffset, sleepChartOffset + delta));
+                renderSleepChart();
+            }
+        }
+
+        // Custom plugin: breaks line segments where either endpoint is null
+        const gapPlugin = {
+            id: 'gapPlugin',
+            beforeDraw(chart) {
+                // We handle gaps via segment styling instead
+            }
+        };
+
+        // Segment style function: returns undefined (draw normally) if both points have data,
+        // or { borderColor: 'transparent' } to hide the segment if either side is null.
+        function gapSegmentStyle(ctx) {
+            // ctx.p0DataPoint and ctx.p1DataPoint are the raw data values
+            if (ctx.p0DataPoint === null || ctx.p1DataPoint === null) {
+                return { borderColor: 'rgba(0,0,0,0)', borderWidth: 0 };
+            }
+            return undefined;
+        }
+
+        // --- Sleep Chart ---
+        function renderSleepChart() {
+            const { labels, dateStrs } = getChartDateRange(sleepChartOffset);
+
+            const wakeData = dateStrs.map(ds => {
+                const entry = allData.find(d => d.date === ds);
+                if (!entry || !entry.wakeTime) return null;
+                const [h, m] = entry.wakeTime.split(':').map(Number);
                 return h + m/60;
             });
-            const sleepData = last7.map(d => {
-                if (!d.sleepTime) return null;
-                const [h, m] = d.sleepTime.split(':').map(Number);
+            const sleepData = dateStrs.map(ds => {
+                const entry = allData.find(d => d.date === ds);
+                if (!entry || !entry.sleepTime) return null;
+                const [h, m] = entry.sleepTime.split(':').map(Number);
                 return h + m/60;
             });
-            
+
+            // Update nav label and button states
+            document.getElementById('sleepChartLabel').textContent = formatNavLabel(sleepChartOffset);
+            const maxOffset = getMaxOffset();
+            document.querySelectorAll('.chart-nav')[1].querySelectorAll('.chart-nav-btn').forEach((btn, i) => {
+                if (i < 2) btn.disabled = (sleepChartOffset >= maxOffset);
+                else btn.disabled = (sleepChartOffset <= 0);
+            });
+
             const ctx = document.getElementById('sleepChart');
             if (sleepChart) sleepChart.destroy();
-            
+
             sleepChart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -3169,8 +3299,10 @@
                             borderColor: '#ff9800',
                             backgroundColor: 'rgba(255, 152, 0, 0.1)',
                             pointBackgroundColor: '#ff9800',
-                            pointRadius: 6,
-                            tension: 0.2
+                            pointRadius: ctx => ctx.parsed.y !== null ? 5 : 0,
+                            tension: 0.2,
+                            spanGaps: false,
+                            segment: { borderColor: gapSegmentStyle }
                         },
                         {
                             label: 'Bed Time',
@@ -3178,8 +3310,10 @@
                             borderColor: '#667eea',
                             backgroundColor: 'rgba(102, 126, 234, 0.1)',
                             pointBackgroundColor: '#667eea',
-                            pointRadius: 6,
-                            tension: 0.2
+                            pointRadius: ctx => ctx.parsed.y !== null ? 5 : 0,
+                            tension: 0.2,
+                            spanGaps: false,
+                            segment: { borderColor: gapSegmentStyle }
                         }
                     ]
                 },
@@ -3192,31 +3326,34 @@
                             min: 5,
                             max: 25,
                             ticks: {
-                                stepSize: 0.5,
+                                stepSize: 1,
                                 callback: v => {
-                                    const hour = v % 24;
-                                    const h = Math.floor(hour);
-                                    const m = (hour - h) * 60;
-                                    return m === 0 ? `${h}:00` : `${h}:30`;
+                                    const h = Math.floor(v % 24);
+                                    return `${h}:00`;
                                 }
                             },
                             grid: {
                                 color: ctx => {
                                     const value = ctx.tick.value;
-                                    if (value === 7 || value === 8 || value === 23 || value === 24) {
-                                        return 'rgba(255, 0, 0, 0.4)';
-                                    }
-                                    return 'rgba(0, 0, 0, 0.1)';
+                                    if (value === 7 || value === 23) return 'rgba(255, 0, 0, 0.4)';
+                                    return 'rgba(0, 0, 0, 0.08)';
                                 },
                                 lineWidth: ctx => {
                                     const value = ctx.tick.value;
-                                    return (value === 7 || value === 8 || value === 23 || value === 24) ? 2 : 1;
+                                    return (value === 7 || value === 23) ? 2 : 1;
                                 },
                                 borderDash: ctx => {
                                     const value = ctx.tick.value;
-                                    return (value === 7 || value === 8 || value === 23 || value === 24) ? [5, 5] : [];
+                                    return (value === 7 || value === 23) ? [5, 5] : [];
                                 }
                             }
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: 45,
+                                font: { size: 10 }
+                            },
+                            grid: { display: false }
                         }
                     },
                     plugins: {
@@ -3224,10 +3361,10 @@
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
+                                    if (context.parsed.y === null) return null;
                                     const value = context.parsed.y;
-                                    const hour = value % 24;
-                                    const h = Math.floor(hour);
-                                    const m = Math.round((hour - h) * 60);
+                                    const h = Math.floor(value % 24);
+                                    const m = Math.round((value - Math.floor(value)) * 60);
                                     return `${context.dataset.label}: ${h}:${String(m).padStart(2, '0')}`;
                                 }
                             }
@@ -3235,35 +3372,40 @@
                     }
                 }
             });
-            
-            // Render Mood/Sleep Quality/Skin Chart
+        }
+
+        // --- Mood / Sleep Quality / Skin Chart ---
+        function renderMoodChart() {
+            const { labels, dateStrs } = getChartDateRange(moodChartOffset);
+
+            const moodData = dateStrs.map(ds => {
+                const entry = allData.find(d => d.date === ds);
+                return entry?.mood || null;
+            });
+            const sleepQualityData = dateStrs.map(ds => {
+                const entry = allData.find(d => d.date === ds);
+                return entry?.sleepQuality || null;
+            });
+            const skinData = dateStrs.map(ds => {
+                const entry = allData.find(d => d.date === ds);
+                return entry?.skin || null;
+            });
+
+            // Update nav label and button states
+            document.getElementById('moodChartLabel').textContent = formatNavLabel(moodChartOffset);
+            const maxOffset = getMaxOffset();
+            document.querySelectorAll('.chart-nav')[0].querySelectorAll('.chart-nav-btn').forEach((btn, i) => {
+                if (i < 2) btn.disabled = (moodChartOffset >= maxOffset);
+                else btn.disabled = (moodChartOffset <= 0);
+            });
+
             const moodCtx = document.getElementById('moodChart');
             if (moodChart) moodChart.destroy();
-            
-            // Build a proper 7-day consecutive range (today back to 6 days ago)
-            const moodLabels = [];
-            const moodData = [];
-            const sleepQualityData = [];
-            const skinData = [];
-            
-            for (let i = 6; i >= 0; i--) {
-                const date = new Date();
-                date.setDate(date.getDate() - i);
-                const dateStr = date.toISOString().split('T')[0];
-                const dayLabel = date.toLocaleDateString('en-AU', { weekday: 'short' }) + ' ' + date.getDate() + ' ' + date.toLocaleDateString('en-AU', { month: 'short' });
-                moodLabels.push(dayLabel);
-                
-                // Find matching entry in allData
-                const entry = allData.find(d => d.date === dateStr);
-                moodData.push(entry?.mood || null);
-                sleepQualityData.push(entry?.sleepQuality || null);
-                skinData.push(entry?.skin || null);
-            }
-            
+
             moodChart = new Chart(moodCtx, {
                 type: 'line',
                 data: {
-                    labels: moodLabels,
+                    labels,
                     datasets: [
                         {
                             label: '😊 Mood',
@@ -3272,9 +3414,10 @@
                             backgroundColor: 'rgba(102, 126, 234, 0.1)',
                             tension: 0.3,
                             borderWidth: 3,
-                            pointRadius: 5,
+                            pointRadius: ctx => ctx.parsed.y !== null ? 5 : 0,
                             pointBackgroundColor: '#667eea',
-                            spanGaps: true
+                            spanGaps: false,
+                            segment: { borderColor: gapSegmentStyle }
                         },
                         {
                             label: '😴 Sleep Quality',
@@ -3283,9 +3426,10 @@
                             backgroundColor: 'rgba(33, 150, 243, 0.1)',
                             tension: 0.3,
                             borderWidth: 3,
-                            pointRadius: 5,
+                            pointRadius: ctx => ctx.parsed.y !== null ? 5 : 0,
                             pointBackgroundColor: '#2196f3',
-                            spanGaps: true
+                            spanGaps: false,
+                            segment: { borderColor: gapSegmentStyle }
                         },
                         {
                             label: '✨ Skin',
@@ -3294,9 +3438,10 @@
                             backgroundColor: 'rgba(102, 187, 106, 0.1)',
                             tension: 0.3,
                             borderWidth: 3,
-                            pointRadius: 5,
+                            pointRadius: ctx => ctx.parsed.y !== null ? 5 : 0,
                             pointBackgroundColor: '#66bb6a',
-                            spanGaps: true
+                            spanGaps: false,
+                            segment: { borderColor: gapSegmentStyle }
                         }
                     ]
                 },
@@ -3320,24 +3465,19 @@
                             max: 10,
                             ticks: {
                                 stepSize: 1,
-                                callback: function(value) {
-                                    return value;
-                                },
                                 font: { size: 13, weight: '600' }
                             },
                             grid: {
                                 color: 'rgba(0, 0, 0, 0.1)',
-                                drawBorder: true,
                                 lineWidth: 1
                             }
                         },
                         x: {
                             ticks: {
-                                font: { size: 11 }
+                                maxRotation: 45,
+                                font: { size: 10 }
                             },
-                            grid: {
-                                display: false
-                            }
+                            grid: { display: false }
                         }
                     }
                 }
