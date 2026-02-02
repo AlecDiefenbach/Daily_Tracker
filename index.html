@@ -1280,29 +1280,19 @@
             
             <div class="card">
                 <h2>📊 Mood, Sleep Quality & Skin</h2>
-                <div class="chart-nav">
-                    <button class="chart-nav-btn" onclick="shiftChart('mood', -7)">◀◀</button>
-                    <button class="chart-nav-btn" onclick="shiftChart('mood', -1)">◀</button>
-                    <span class="chart-nav-label" id="moodChartLabel"></span>
-                    <button class="chart-nav-btn" onclick="shiftChart('mood', 1)">▶</button>
-                    <button class="chart-nav-btn" onclick="shiftChart('mood', 7)">▶▶</button>
-                </div>
-                <div style="height: 450px; position: relative;">
-                    <canvas id="moodChart"></canvas>
+                <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                    <div style="height: 450px; position: relative; min-width: 100%;" id="moodChartContainer">
+                        <canvas id="moodChart"></canvas>
+                    </div>
                 </div>
             </div>
             
             <div class="card">
                 <h2>😴 Sleep Patterns</h2>
-                <div class="chart-nav">
-                    <button class="chart-nav-btn" onclick="shiftChart('sleep', -7)">◀◀</button>
-                    <button class="chart-nav-btn" onclick="shiftChart('sleep', -1)">◀</button>
-                    <span class="chart-nav-label" id="sleepChartLabel"></span>
-                    <button class="chart-nav-btn" onclick="shiftChart('sleep', 1)">▶</button>
-                    <button class="chart-nav-btn" onclick="shiftChart('sleep', 7)">▶▶</button>
-                </div>
-                <div style="position: relative;">
-                    <canvas id="sleepChart" style="height: 400px;"></canvas>
+                <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                    <div style="position: relative; min-width: 100%;" id="sleepChartContainer">
+                        <canvas id="sleepChart" style="height: 400px;"></canvas>
+                    </div>
                 </div>
             </div>
             
@@ -1551,9 +1541,6 @@
         let showCompletedSections = { weekly: false, monthly: false, quarterly: false, yearly: false };
         let sleepChart = null;
         let moodChart = null;
-        let moodChartOffset = 0; // days offset from "today as right edge"
-        let sleepChartOffset = 0;
-        const CHART_WINDOW = 14; // number of days visible at once
         let currentTimePickerType = null;
         let streakData = {};
         let currentEditDate;
@@ -3193,22 +3180,32 @@
 
         // --- Shared chart helpers ---
 
-        // Builds a consecutive date range array (chronological) for the visible window.
-        // offset = how many days the right edge is shifted back from today (0 = today is right edge)
-        function getChartDateRange(offset) {
-            const rightEdge = new Date();
-            rightEdge.setDate(rightEdge.getDate() - offset);
+        // Builds full consecutive date range (last 90 days or all available data, whichever is less)
+        function getFullDateRange() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            let daysBack = 90;
+            if (allData.length > 0) {
+                const sorted = [...allData].sort((a, b) => a.date.localeCompare(b.date));
+                const earliest = new Date(sorted[0].date + 'T00:00:00');
+                const actualDaysBack = Math.floor((today - earliest) / (1000*60*60*24)) + 1;
+                daysBack = Math.min(90, actualDaysBack);
+            }
+            
             const labels = [];
             const dateStrs = [];
-            for (let i = CHART_WINDOW - 1; i >= 0; i--) {
-                const d = new Date(rightEdge);
+            
+            for (let i = daysBack - 1; i >= 0; i--) {
+                const d = new Date(today);
                 d.setDate(d.getDate() - i);
                 const dateStr = d.toISOString().split('T')[0];
                 const label = d.toLocaleDateString('en-AU', { weekday: 'short' }) + ' ' + d.getDate() + ' ' + d.toLocaleDateString('en-AU', { month: 'short' });
                 dateStrs.push(dateStr);
                 labels.push(label);
             }
-            return { labels, dateStrs, rightEdge };
+            
+            return { labels, dateStrs, daysBack };
         }
 
         function formatNavLabel(offset) {
@@ -3264,7 +3261,7 @@
         // Y-axis: 5-28 (5am wake to 4am bed). Early morning bedtimes (1am-4am) appear as hours 25-28.
         // These plot on the calendar day where you started the evening, not the technical next-day timestamp.
         function renderSleepChart() {
-            const { labels, dateStrs } = getChartDateRange(sleepChartOffset);
+            const { labels, dateStrs, daysBack } = getFullDateRange();
 
             const wakeData = dateStrs.map(ds => {
                 const entry = allData.find(d => d.date === ds);
@@ -3282,13 +3279,9 @@
                 return hour;
             });
 
-            // Update nav label and button states
-            document.getElementById('sleepChartLabel').textContent = formatNavLabel(sleepChartOffset);
-            const maxOffset = getMaxOffset();
-            document.querySelectorAll('.chart-nav')[1].querySelectorAll('.chart-nav-btn').forEach((btn, i) => {
-                if (i < 2) btn.disabled = (sleepChartOffset >= maxOffset);
-                else btn.disabled = (sleepChartOffset <= 0);
-            });
+            // Set canvas container width for scrolling (30px per day)
+            const container = document.getElementById('sleepChartContainer');
+            container.style.width = `${daysBack * 30}px`;
 
             const ctx = document.getElementById('sleepChart');
             if (sleepChart) sleepChart.destroy();
@@ -3324,8 +3317,7 @@
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: true,
-                    aspectRatio: 1.2,
+                    maintainAspectRatio: false,
                     scales: {
                         y: {
                             min: 5,
@@ -3355,8 +3347,9 @@
                         },
                         x: {
                             ticks: {
+                                autoSkip: false,
                                 maxRotation: 45,
-                                font: { size: 10 }
+                                font: { size: 9 }
                             },
                             grid: { display: false }
                         }
@@ -3377,14 +3370,11 @@
                     }
                 }
             });
-
-            // Add swipe navigation
-            addSwipeHandler('sleepChart', 'sleep');
         }
 
         // --- Mood / Sleep Quality / Skin Chart ---
         function renderMoodChart() {
-            const { labels, dateStrs } = getChartDateRange(moodChartOffset);
+            const { labels, dateStrs, daysBack } = getFullDateRange();
 
             const moodData = dateStrs.map(ds => {
                 const entry = allData.find(d => d.date === ds);
@@ -3399,13 +3389,9 @@
                 return entry?.skin || null;
             });
 
-            // Update nav label and button states
-            document.getElementById('moodChartLabel').textContent = formatNavLabel(moodChartOffset);
-            const maxOffset = getMaxOffset();
-            document.querySelectorAll('.chart-nav')[0].querySelectorAll('.chart-nav-btn').forEach((btn, i) => {
-                if (i < 2) btn.disabled = (moodChartOffset >= maxOffset);
-                else btn.disabled = (moodChartOffset <= 0);
-            });
+            // Set canvas container width for scrolling (30px per day)
+            const container = document.getElementById('moodChartContainer');
+            container.style.width = `${daysBack * 30}px`;
 
             const moodCtx = document.getElementById('moodChart');
             if (moodChart) moodChart.destroy();
@@ -3482,48 +3468,15 @@
                         },
                         x: {
                             ticks: {
+                                autoSkip: false,
                                 maxRotation: 45,
-                                font: { size: 10 }
+                                font: { size: 9 }
                             },
                             grid: { display: false }
                         }
                     }
                 }
             });
-
-            // Add swipe navigation
-            addSwipeHandler('moodChart', 'mood');
-        }
-
-        // --- Touch/Swipe Navigation ---
-        function addSwipeHandler(canvasId, chartType) {
-            const canvas = document.getElementById(canvasId);
-            let touchStartX = 0;
-            let touchEndX = 0;
-
-            canvas.addEventListener('touchstart', (e) => {
-                touchStartX = e.changedTouches[0].screenX;
-            }, { passive: true });
-
-            canvas.addEventListener('touchend', (e) => {
-                touchEndX = e.changedTouches[0].screenX;
-                handleSwipe(chartType);
-            }, { passive: true });
-
-            function handleSwipe(type) {
-                const threshold = 50; // minimum swipe distance in pixels
-                const diff = touchStartX - touchEndX;
-
-                if (Math.abs(diff) < threshold) return; // not a swipe
-
-                if (diff > 0) {
-                    // Swiped left → go forward in time (decrease offset)
-                    shiftChart(type, 3);
-                } else {
-                    // Swiped right → go back in time (increase offset)
-                    shiftChart(type, -3);
-                }
-            }
         }
     </script>
 </body>
