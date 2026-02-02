@@ -3234,10 +3234,10 @@
         function shiftChart(type, delta) {
             const maxOffset = getMaxOffset();
             if (type === 'mood') {
-                moodChartOffset = Math.max(0, Math.min(maxOffset, moodChartOffset + delta));
+                moodChartOffset = Math.max(0, Math.min(maxOffset, moodChartOffset - delta));
                 renderMoodChart();
             } else {
-                sleepChartOffset = Math.max(0, Math.min(maxOffset, sleepChartOffset + delta));
+                sleepChartOffset = Math.max(0, Math.min(maxOffset, sleepChartOffset - delta));
                 renderSleepChart();
             }
         }
@@ -3261,6 +3261,8 @@
         }
 
         // --- Sleep Chart ---
+        // Y-axis: 5-28 (5am wake to 4am bed). Early morning bedtimes (1am-4am) appear as hours 25-28.
+        // These plot on the calendar day where you started the evening, not the technical next-day timestamp.
         function renderSleepChart() {
             const { labels, dateStrs } = getChartDateRange(sleepChartOffset);
 
@@ -3274,7 +3276,10 @@
                 const entry = allData.find(d => d.date === ds);
                 if (!entry || !entry.sleepTime) return null;
                 const [h, m] = entry.sleepTime.split(':').map(Number);
-                return h + m/60;
+                let hour = h + m/60;
+                // If bedtime is 0-4am (hours 0-4.99), treat as "last night" by adding 24
+                if (h >= 0 && h < 5) hour += 24;
+                return hour;
             });
 
             // Update nav label and button states
@@ -3324,7 +3329,7 @@
                     scales: {
                         y: {
                             min: 5,
-                            max: 25,
+                            max: 28,
                             ticks: {
                                 stepSize: 1,
                                 callback: v => {
@@ -3372,6 +3377,9 @@
                     }
                 }
             });
+
+            // Add swipe navigation
+            addSwipeHandler('sleepChart', 'sleep');
         }
 
         // --- Mood / Sleep Quality / Skin Chart ---
@@ -3482,6 +3490,40 @@
                     }
                 }
             });
+
+            // Add swipe navigation
+            addSwipeHandler('moodChart', 'mood');
+        }
+
+        // --- Touch/Swipe Navigation ---
+        function addSwipeHandler(canvasId, chartType) {
+            const canvas = document.getElementById(canvasId);
+            let touchStartX = 0;
+            let touchEndX = 0;
+
+            canvas.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, { passive: true });
+
+            canvas.addEventListener('touchend', (e) => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe(chartType);
+            }, { passive: true });
+
+            function handleSwipe(type) {
+                const threshold = 50; // minimum swipe distance in pixels
+                const diff = touchStartX - touchEndX;
+
+                if (Math.abs(diff) < threshold) return; // not a swipe
+
+                if (diff > 0) {
+                    // Swiped left → go forward in time (decrease offset)
+                    shiftChart(type, 3);
+                } else {
+                    // Swiped right → go back in time (increase offset)
+                    shiftChart(type, -3);
+                }
+            }
         }
     </script>
 </body>
