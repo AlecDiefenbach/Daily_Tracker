@@ -1280,18 +1280,26 @@
             
             <div class="card">
                 <h2>📊 Mood, Sleep Quality & Skin</h2>
-                <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
-                    <div style="height: 450px; position: relative; min-width: 100%;" id="moodChartContainer">
+                <div style="position: relative;">
+                    <div style="height: 450px; position: relative;">
                         <canvas id="moodChart"></canvas>
+                    </div>
+                    <!-- Hidden scrollbar track -->
+                    <div style="overflow-x: auto; -webkit-overflow-scrolling: touch; height: 20px; margin-top: 5px;" id="moodScrollContainer" onscroll="updateChartWindow('mood')">
+                        <div id="moodScrollTrack" style="height: 1px;"></div>
                     </div>
                 </div>
             </div>
             
             <div class="card">
                 <h2>😴 Sleep Patterns</h2>
-                <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
-                    <div style="position: relative; min-width: 100%;" id="sleepChartContainer">
+                <div style="position: relative;">
+                    <div style="position: relative;">
                         <canvas id="sleepChart" style="height: 400px;"></canvas>
+                    </div>
+                    <!-- Hidden scrollbar track -->
+                    <div style="overflow-x: auto; -webkit-overflow-scrolling: touch; height: 20px; margin-top: 5px;" id="sleepScrollContainer" onscroll="updateChartWindow('sleep')">
+                        <div id="sleepScrollTrack" style="height: 1px;"></div>
                     </div>
                 </div>
             </div>
@@ -1541,6 +1549,10 @@
         let showCompletedSections = { weekly: false, monthly: false, quarterly: false, yearly: false };
         let sleepChart = null;
         let moodChart = null;
+        let moodWindowStart = 0; // index of leftmost visible day (0 = oldest in dataset)
+        let sleepWindowStart = 0;
+        const WINDOW_SIZE = 14; // number of days visible at once
+        let totalDataDays = 0; // total days available for scrolling
         let currentTimePickerType = null;
         let streakData = {};
         let currentEditDate;
@@ -3176,12 +3188,13 @@
             
             renderSleepChart();
             renderMoodChart();
+            initializeScrollTracks();
         }
 
         // --- Shared chart helpers ---
 
-        // Builds full consecutive date range (last 90 days or all available data, whichever is less)
-        function getFullDateRange() {
+        // Builds complete date range (last 90 days or all available)
+        function getCompleteDateRange() {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             
@@ -3193,19 +3206,67 @@
                 daysBack = Math.min(90, actualDaysBack);
             }
             
-            const labels = [];
-            const dateStrs = [];
+            const allLabels = [];
+            const allDateStrs = [];
             
             for (let i = daysBack - 1; i >= 0; i--) {
                 const d = new Date(today);
                 d.setDate(d.getDate() - i);
                 const dateStr = d.toISOString().split('T')[0];
                 const label = d.toLocaleDateString('en-AU', { weekday: 'short' }) + ' ' + d.getDate() + ' ' + d.toLocaleDateString('en-AU', { month: 'short' });
-                dateStrs.push(dateStr);
-                labels.push(label);
+                allDateStrs.push(dateStr);
+                allLabels.push(label);
             }
             
-            return { labels, dateStrs, daysBack };
+            totalDataDays = daysBack;
+            return { allLabels, allDateStrs, totalDays: daysBack };
+        }
+
+        // Extracts window from complete range
+        function getWindowedData(windowStart) {
+            const { allLabels, allDateStrs } = getCompleteDateRange();
+            const start = Math.max(0, windowStart);
+            const end = Math.min(allLabels.length, start + WINDOW_SIZE);
+            
+            return {
+                labels: allLabels.slice(start, end),
+                dateStrs: allDateStrs.slice(start, end)
+            };
+        }
+
+        // Initialize scroll track widths
+        function initializeScrollTracks() {
+            const maxScroll = Math.max(0, totalDataDays - WINDOW_SIZE);
+            const trackWidth = maxScroll * 30 + 300; // 30px per scrollable day + base width
+            
+            document.getElementById('moodScrollTrack').style.width = trackWidth + 'px';
+            document.getElementById('sleepScrollTrack').style.width = trackWidth + 'px';
+            
+            // Start scrolled to the right (showing most recent data)
+            document.getElementById('moodScrollContainer').scrollLeft = maxScroll * 30;
+            document.getElementById('sleepScrollContainer').scrollLeft = maxScroll * 30;
+        }
+
+        // Update chart window based on scroll position
+        function updateChartWindow(type) {
+            const container = document.getElementById(type + 'ScrollContainer');
+            const scrollLeft = container.scrollLeft;
+            const maxScroll = Math.max(0, totalDataDays - WINDOW_SIZE);
+            
+            // Convert scroll position to window start index
+            const windowStart = Math.floor((scrollLeft / 30));
+            
+            if (type === 'mood') {
+                if (windowStart !== moodWindowStart) {
+                    moodWindowStart = windowStart;
+                    renderMoodChart();
+                }
+            } else {
+                if (windowStart !== sleepWindowStart) {
+                    sleepWindowStart = windowStart;
+                    renderSleepChart();
+                }
+            }
         }
 
         function formatNavLabel(offset) {
@@ -3261,7 +3322,7 @@
         // Y-axis: 5-28 (5am wake to 4am bed). Early morning bedtimes (1am-4am) appear as hours 25-28.
         // These plot on the calendar day where you started the evening, not the technical next-day timestamp.
         function renderSleepChart() {
-            const { labels, dateStrs, daysBack } = getFullDateRange();
+            const { labels, dateStrs } = getWindowedData(sleepWindowStart);
 
             const wakeData = dateStrs.map(ds => {
                 const entry = allData.find(d => d.date === ds);
@@ -3278,10 +3339,6 @@
                 if (h >= 0 && h < 5) hour += 24;
                 return hour;
             });
-
-            // Set canvas container width for scrolling (30px per day)
-            const container = document.getElementById('sleepChartContainer');
-            container.style.width = `${daysBack * 30}px`;
 
             const ctx = document.getElementById('sleepChart');
             if (sleepChart) sleepChart.destroy();
@@ -3374,7 +3431,7 @@
 
         // --- Mood / Sleep Quality / Skin Chart ---
         function renderMoodChart() {
-            const { labels, dateStrs, daysBack } = getFullDateRange();
+            const { labels, dateStrs } = getWindowedData(moodWindowStart);
 
             const moodData = dateStrs.map(ds => {
                 const entry = allData.find(d => d.date === ds);
@@ -3388,10 +3445,6 @@
                 const entry = allData.find(d => d.date === ds);
                 return entry?.skin || null;
             });
-
-            // Set canvas container width for scrolling (30px per day)
-            const container = document.getElementById('moodChartContainer');
-            container.style.width = `${daysBack * 30}px`;
 
             const moodCtx = document.getElementById('moodChart');
             if (moodChart) moodChart.destroy();
