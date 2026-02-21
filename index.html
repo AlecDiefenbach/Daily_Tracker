@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Tracker 2026 - v2.0</title>
+    <title>Daily Tracker 2026 - v3.0</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
@@ -805,7 +805,7 @@
         <div class="header">
             <h1 style="display: flex; align-items: center; justify-content: space-between;">
                 <span>🎯 Daily Tracker</span>
-                <span style="font-size: 14px; color: #999; font-weight: normal;">v2.0</span>
+                <span style="font-size: 14px; color: #999; font-weight: normal;">v3.0</span>
             </h1>
             <div class="date" id="currentDate"></div>
             <div class="date-picker-container" style="display: none;" id="datePicker">
@@ -813,14 +813,23 @@
                 <label>📅</label>
                 <input type="date" id="dateInput" onchange="loadDateData()">
             </div>
+            <div style="display: flex; gap: 8px; margin-top: 12px;">
+                <button onclick="exportData()" style="flex: 1; padding: 10px; background: #667eea; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                    📤 Export Data
+                </button>
+                <button onclick="document.getElementById('importFile').click()" style="flex: 1; padding: 10px; background: #4CAF50; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                    📥 Import Data
+                </button>
+                <input type="file" id="importFile" accept=".json" onchange="importData(event)" style="display: none;">
+            </div>
         </div>
         
         <div class="tab-nav">
-            <button class="tab-button active" onclick="switchTab('today')">📝</button>
-            <button class="tab-button" onclick="switchTab('exercise')">💪</button>
-            <button class="tab-button" onclick="switchTab('cleaning')">🧹</button>
-            <button class="tab-button" onclick="switchTab('history')">📜</button>
-            <button class="tab-button" onclick="switchTab('stats')">📊</button>
+            <button class="tab-button active" onclick="switchTab('today', event)">📝</button>
+            <button class="tab-button" onclick="switchTab('exercise', event)">💪</button>
+            <button class="tab-button" onclick="switchTab('cleaning', event)">🧹</button>
+            <button class="tab-button" onclick="switchTab('history', event)">📜</button>
+            <button class="tab-button" onclick="switchTab('stats', event)">📊</button>
         </div>
         
         <!-- Time Picker Modal -->
@@ -838,9 +847,10 @@
                 </div>
             </div>
         </div>
-        
-        <!-- TODAY TAB -->
+
+        <!-- Today Tab Content -->
         <div class="tab-content active" id="today-tab">
+            <!-- Sleep Section -->
             <div class="card">
                 <h2>😴 Sleep<span class="streak-badge" id="sleepStreak" style="display: none;">🔥 0 days</span></h2>
                 <button class="tap-button" id="wakeBtn" onclick="logWakeTime()">
@@ -853,53 +863,90 @@
                     <span class="time" id="sleepTime"></span>
                     <span class="edit-link" id="sleepEdit" style="display: none;" onclick="event.stopPropagation(); editSleepTime()">Edit time</span>
                 </button>
+                
+                <!-- Sleep Quality (logged in the morning) -->
+                <div class="mood-section" style="margin-top: 15px;">
+                    <div class="slider-row">
+                        <div class="slider-header">
+                            <div class="slider-title">
+                                <h4>😴 Sleep Quality</h4>
+                                <span class="slider-emoji" id="sleepQualityEmoji">😴</span>
+                            </div>
+                            <div class="slider-right">
+                                <span class="slider-desc" id="sleepQualityDesc">Average</span>
+                                <span class="slider-value" id="sleepQualityValue">5</span>
+                            </div>
+                        </div>
+                        <input type="range" min="1" max="10" value="5" class="mood-slider sleep-quality-slider" id="sleepQualitySlider" oninput="updateMoodTracking('sleepQuality', this.value)">
+                    </div>
+                </div>
             </div>
             
-            <!-- Mood/Sleep Quality/Skin Section -->
+            <!-- Morning Tracking -->
             <div class="card mood-section">
-                <!-- Mood -->
+                <h2>🌅 Morning</h2>
+                <!-- Morning Mood -->
                 <div class="slider-row">
                     <div class="slider-header">
                         <div class="slider-title">
                             <h4>😊 Mood</h4>
-                            <span class="slider-emoji" id="moodEmoji">😐</span>
+                            <span class="slider-emoji" id="morningMoodEmoji">😐</span>
                         </div>
                         <div class="slider-right">
-                            <span class="slider-desc" id="moodDesc">Neutral</span>
-                            <span class="slider-value" id="moodValue">5</span>
+                            <span class="slider-desc" id="morningMoodDesc">Neutral</span>
+                            <span class="slider-value" id="morningMoodValue">5</span>
                         </div>
                     </div>
-                    <input type="range" min="1" max="10" value="5" class="mood-slider" id="moodSlider" oninput="updateMoodTracking('mood', this.value)">
+                    <input type="range" min="1" max="10" value="5" class="mood-slider" id="morningMoodSlider" oninput="updateMoodTracking('morningMood', this.value)">
                 </div>
                 
-                <!-- Sleep Quality -->
-                <div class="slider-row">
-                    <div class="slider-header">
-                        <div class="slider-title">
-                            <h4>😴 Sleep Quality</h4>
-                            <span class="slider-emoji" id="sleepQualityEmoji">😴</span>
-                        </div>
-                        <div class="slider-right">
-                            <span class="slider-desc" id="sleepQualityDesc">Average</span>
-                            <span class="slider-value" id="sleepQualityValue">5</span>
-                        </div>
-                    </div>
-                    <input type="range" min="1" max="10" value="5" class="mood-slider sleep-quality-slider" id="sleepQualitySlider" oninput="updateMoodTracking('sleepQuality', this.value)">
-                </div>
-                
-                <!-- Skin -->
+                <!-- Morning Skin -->
                 <div class="slider-row">
                     <div class="slider-header">
                         <div class="slider-title">
                             <h4>✨ Skin</h4>
-                            <span class="slider-emoji" id="skinEmoji">😐</span>
+                            <span class="slider-emoji" id="morningSkinEmoji">😐</span>
                         </div>
                         <div class="slider-right">
-                            <span class="slider-desc" id="skinDesc">Average</span>
-                            <span class="slider-value" id="skinValue">5</span>
+                            <span class="slider-desc" id="morningSkinDesc">Average</span>
+                            <span class="slider-value" id="morningSkinValue">5</span>
                         </div>
                     </div>
-                    <input type="range" min="1" max="10" value="5" class="mood-slider skin-slider" id="skinSlider" oninput="updateMoodTracking('skin', this.value)">
+                    <input type="range" min="1" max="10" value="5" class="mood-slider skin-slider" id="morningSkinSlider" oninput="updateMoodTracking('morningSkin', this.value)">
+                </div>
+            </div>
+            
+            <!-- Evening Tracking -->
+            <div class="card mood-section">
+                <h2>🌆 Evening</h2>
+                <!-- Evening Mood -->
+                <div class="slider-row">
+                    <div class="slider-header">
+                        <div class="slider-title">
+                            <h4>😊 Mood</h4>
+                            <span class="slider-emoji" id="eveningMoodEmoji">😐</span>
+                        </div>
+                        <div class="slider-right">
+                            <span class="slider-desc" id="eveningMoodDesc">Neutral</span>
+                            <span class="slider-value" id="eveningMoodValue">5</span>
+                        </div>
+                    </div>
+                    <input type="range" min="1" max="10" value="5" class="mood-slider" id="eveningMoodSlider" oninput="updateMoodTracking('eveningMood', this.value)">
+                </div>
+                
+                <!-- Evening Skin -->
+                <div class="slider-row">
+                    <div class="slider-header">
+                        <div class="slider-title">
+                            <h4>✨ Skin</h4>
+                            <span class="slider-emoji" id="eveningSkinEmoji">😐</span>
+                        </div>
+                        <div class="slider-right">
+                            <span class="slider-desc" id="eveningSkinDesc">Average</span>
+                            <span class="slider-value" id="eveningSkinValue">5</span>
+                        </div>
+                    </div>
+                    <input type="range" min="1" max="10" value="5" class="mood-slider skin-slider" id="eveningSkinSlider" oninput="updateMoodTracking('eveningSkin', this.value)">
                 </div>
             </div>
             
@@ -909,7 +956,7 @@
                 
                 <!-- Exercise Section -->
                 <div class="expandable-section">
-                    <div class="section-header" onclick="toggleSection('exercise')">
+                    <div class="section-header" onclick="toggleSection('exercise', event)">
                         <span>💪 Exercise</span>
                         <span class="arrow">▼</span>
                     </div>
@@ -951,7 +998,7 @@
             
             <!-- Health Section -->
                 <div class="expandable-section">
-                    <div class="section-header" onclick="toggleSection('health')">
+                    <div class="section-header" onclick="toggleSection('health', event)">
                         <span>🏥 Health</span>
                         <span class="arrow">▼</span>
                     </div>
@@ -991,10 +1038,10 @@
                     </div>
                 </div>
             
-            <!-- Sunlight Section -->
+            <!-- Wellbeing Section -->
                 <div class="expandable-section">
-                    <div class="section-header" onclick="toggleSection('habits')">
-                        <span>☀️ Sunlight</span>
+                    <div class="section-header" onclick="toggleSection('habits', event)">
+                        <span>✨ Wellbeing</span>
                         <span class="arrow">▼</span>
                     </div>
                     <div class="section-content" id="section-habits">
@@ -1009,13 +1056,18 @@
                                 <span class="label">Afternoon Sun</span>
                                 <span class="checkmark"></span>
                             </div>
+                            <div class="checkbox-item" onclick="toggleItem('socialising')" id="item-socialising">
+                                <span class="emoji">👥</span>
+                                <span class="label">Socialising</span>
+                                <span class="checkmark"></span>
+                            </div>
                         </div>
                     </div>
                 </div>
             
             <!-- Timed Activities Section -->
                 <div class="expandable-section">
-                    <div class="section-header" onclick="toggleSection('timed')">
+                    <div class="section-header" onclick="toggleSection('timed', event)">
                         <span>⏱️ Timed Activities</span>
                         <span class="arrow">▼</span>
                     </div>
@@ -1114,7 +1166,7 @@
             
             <!-- Diet & Cooking Section -->
                 <div class="expandable-section">
-                    <div class="section-header" onclick="toggleSection('diet')">
+                    <div class="section-header" onclick="toggleSection('diet', event)">
                         <span>🍽️ Diet & Cooking</span>
                         <span class="arrow">▼</span>
                     </div>
@@ -1177,7 +1229,8 @@
                 </div>
             </div>
         </div>
-        
+        </div>
+
         <!-- EXERCISE TAB -->
         <div class="tab-content" id="exercise-tab">
             <div class="card" style="background: #fff8e1;">
@@ -1207,7 +1260,7 @@
                 
                 <!-- Weekly -->
                 <div class="expandable-section">
-                    <div class="section-header" onclick="toggleSection('weekly')">
+                    <div class="section-header" onclick="toggleSection('weekly', event)">
                         <span>📅 Weekly Clean (Every 7 days)</span>
                         <span class="arrow">▼</span>
                     </div>
@@ -1221,7 +1274,7 @@
                 
                 <!-- Monthly -->
                 <div class="expandable-section">
-                    <div class="section-header" onclick="toggleSection('monthly')">
+                    <div class="section-header" onclick="toggleSection('monthly', event)">
                         <span>📆 Monthly Tasks (Every 30 days)</span>
                         <span class="arrow">▼</span>
                     </div>
@@ -1235,7 +1288,7 @@
                 
                 <!-- Quarterly -->
                 <div class="expandable-section">
-                    <div class="section-header" onclick="toggleSection('quarterly')">
+                    <div class="section-header" onclick="toggleSection('quarterly', event)">
                         <span>📊 Quarterly Tasks (Every 90 days)</span>
                         <span class="arrow">▼</span>
                     </div>
@@ -1249,7 +1302,7 @@
                 
                 <!-- Yearly -->
                 <div class="expandable-section">
-                    <div class="section-header" onclick="toggleSection('yearly')">
+                    <div class="section-header" onclick="toggleSection('yearly', event)">
                         <span>📅 Yearly Tasks (Every 365 days)</span>
                         <span class="arrow">▼</span>
                     </div>
@@ -1274,12 +1327,12 @@
         <!-- STATS TAB -->
         <div class="tab-content" id="stats-tab">
             <div class="card">
-                <button class="summary-button" onclick="generateWeeklySummary()">✨ Generate Weekly Summary</button>
+                <button class="summary-button" onclick="generateWeeklySummary(event)">✨ Generate Weekly Summary</button>
                 <div class="summary-box" id="summaryBox"></div>
             </div>
             
             <div class="card">
-                <h2>📊 Mood, Sleep Quality & Skin</h2>
+                <h2>📊 Mood & Skin Tracking</h2>
                 <div style="position: relative;">
                     <div style="height: 450px; position: relative;">
                         <canvas id="moodChart"></canvas>
@@ -1332,6 +1385,15 @@
                         </div>
                         <div class="progress-bar">
                             <div class="progress-fill" id="cardioProgress"></div>
+                        </div>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-label">
+                            <span>👥 Socialising</span>
+                            <span id="socialisingCount">0/2</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="socialisingProgress"></div>
                         </div>
                     </div>
                 </div>
@@ -1556,13 +1618,36 @@
         let currentTimePickerType = null;
         let streakData = {};
         let currentEditDate;
-        
+
+        // Helper: get data entries within the last N calendar days
+        function getLastNDays(n) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const cutoff = new Date(today);
+            cutoff.setDate(cutoff.getDate() - n + 1);
+            const cutoffStr = cutoff.toISOString().split('T')[0];
+            return allData.filter(d => d.date >= cutoffStr);
+        }
+
+        // Helper: get data entries for the previous N-day window (days N+1 to 2N ago)
+        function getPrevNDays(n) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const start = new Date(today);
+            start.setDate(start.getDate() - 2 * n + 1);
+            const end = new Date(today);
+            end.setDate(end.getDate() - n);
+            const startStr = start.toISOString().split('T')[0];
+            const endStr = end.toISOString().split('T')[0];
+            return allData.filter(d => d.date >= startStr && d.date <= endStr);
+        }
+
         const itemLabels = {
             gymWeights: '🏋️ Gym - Weights', gymCardio: '🚴 Gym - Cardio', walk: '🚶 Walk',
             yoga: '🧘 Yoga', stretching: '🤸 Stretching', surf: '🏄 Surf',
             eyeDrops: '👁️ Eye Drops', duofilm: '💧 Duofilm', nasonex: '👃 Nasonex',
             noseTape: '🩹 Nose Tape', mouthTape: '🤐 Mouth Tape', eyeGel: '👀 Eye Gel',
-            morningSun: '🌅 Morning Sun', afternoonSun: '🌇 Afternoon Sun',
+            morningSun: '🌅 Morning Sun', afternoonSun: '🌇 Afternoon Sun', socialising: '👥 Socialising',
             chocolate: '🍫 Chocolate', mealPrep: '🥘 Meal Prep', cookedDinner: '👨‍🍳 Cooked Dinner'
         };
         
@@ -1631,9 +1716,11 @@
                     videoGames: { total: 0, running: false, startTime: null },
                     portuguese: { total: 0, running: false, startTime: null }
                 },
-                mood: 5,
                 sleepQuality: 5,
-                skin: 5,
+                morningMood: 5,
+                morningSkin: 5,
+                eveningMood: 5,
+                eveningSkin: 5,
                 bikeTime: 0,
                 bikeCalories: 0,
                 exercises: {}
@@ -1879,15 +1966,23 @@
             updateStreaks();
             
             // Restore mood/sleep quality/skin sliders
-            const moodVal = todayData.mood || 5;
             const sleepQVal = todayData.sleepQuality || 5;
-            const skinVal = todayData.skin || 5;
-            document.getElementById('moodSlider').value = moodVal;
+            const morningMoodVal = todayData.morningMood || 5;
+            const morningSkinVal = todayData.morningSkin || 5;
+            const eveningMoodVal = todayData.eveningMood || 5;
+            const eveningSkinVal = todayData.eveningSkin || 5;
+            
             document.getElementById('sleepQualitySlider').value = sleepQVal;
-            document.getElementById('skinSlider').value = skinVal;
-            updateMoodTracking('mood', moodVal);
+            document.getElementById('morningMoodSlider').value = morningMoodVal;
+            document.getElementById('morningSkinSlider').value = morningSkinVal;
+            document.getElementById('eveningMoodSlider').value = eveningMoodVal;
+            document.getElementById('eveningSkinSlider').value = eveningSkinVal;
+            
             updateMoodTracking('sleepQuality', sleepQVal);
-            updateMoodTracking('skin', skinVal);
+            updateMoodTracking('morningMood', morningMoodVal);
+            updateMoodTracking('morningSkin', morningSkinVal);
+            updateMoodTracking('eveningMood', eveningMoodVal);
+            updateMoodTracking('eveningSkin', eveningSkinVal);
             
             // Restore exercise tab data
             document.getElementById('bikeTime').value = todayData.bikeTime || 0;
@@ -1895,14 +1990,25 @@
             renderWeightsExercises();
         }
         
+        let _saveTimer = null;
         function saveTodayData() {
             localStorage.setItem(`tracker_${todayData.date}`, JSON.stringify(todayData));
             updateHistory();
             updateStreaks();
             checkGoalAchievements();
         }
+        // Debounced version for rapid-fire inputs (sliders, exercise adjustments)
+        function saveTodayDataDebounced() {
+            localStorage.setItem(`tracker_${todayData.date}`, JSON.stringify(todayData));
+            clearTimeout(_saveTimer);
+            _saveTimer = setTimeout(() => {
+                updateHistory();
+                updateStreaks();
+            }, 300);
+        }
         
         function updateHistory() {
+            invalidateDataMap();
             const idx = allData.findIndex(d => d.date === todayData.date);
             if (idx >= 0) allData[idx] = {...todayData};
             else allData.unshift({...todayData});
@@ -1963,32 +2069,40 @@
         function updateMoodTracking(type, value) {
             const val = parseInt(value);
             
-            if (type === 'mood') {
-                document.getElementById('moodValue').textContent = val;
-                document.getElementById('moodEmoji').textContent = moodEmojis[val - 1];
-                document.getElementById('moodDesc').textContent = moodDescs[val - 1];
-                todayData.mood = val;
-            } else if (type === 'sleepQuality') {
+            if (type === 'sleepQuality') {
                 document.getElementById('sleepQualityValue').textContent = val;
                 document.getElementById('sleepQualityEmoji').textContent = sleepQualityEmojis[val - 1];
                 document.getElementById('sleepQualityDesc').textContent = sleepQualityDescs[val - 1];
                 todayData.sleepQuality = val;
-            } else if (type === 'skin') {
-                document.getElementById('skinValue').textContent = val;
-                document.getElementById('skinEmoji').textContent = skinEmojis[val - 1];
-                document.getElementById('skinDesc').textContent = skinDescs[val - 1];
-                todayData.skin = val;
+            } else if (type === 'morningMood') {
+                document.getElementById('morningMoodValue').textContent = val;
+                document.getElementById('morningMoodEmoji').textContent = moodEmojis[val - 1];
+                document.getElementById('morningMoodDesc').textContent = moodDescs[val - 1];
+                todayData.morningMood = val;
+            } else if (type === 'morningSkin') {
+                document.getElementById('morningSkinValue').textContent = val;
+                document.getElementById('morningSkinEmoji').textContent = skinEmojis[val - 1];
+                document.getElementById('morningSkinDesc').textContent = skinDescs[val - 1];
+                todayData.morningSkin = val;
+            } else if (type === 'eveningMood') {
+                document.getElementById('eveningMoodValue').textContent = val;
+                document.getElementById('eveningMoodEmoji').textContent = moodEmojis[val - 1];
+                document.getElementById('eveningMoodDesc').textContent = moodDescs[val - 1];
+                todayData.eveningMood = val;
+            } else if (type === 'eveningSkin') {
+                document.getElementById('eveningSkinValue').textContent = val;
+                document.getElementById('eveningSkinEmoji').textContent = skinEmojis[val - 1];
+                document.getElementById('eveningSkinDesc').textContent = skinDescs[val - 1];
+                todayData.eveningSkin = val;
             }
-            
-            saveTodayData();
-            updateHistory();
+
+            saveTodayDataDebounced();
         }
         
         function saveExerciseData() {
             todayData.bikeTime = parseInt(document.getElementById('bikeTime').value) || 0;
             todayData.bikeCalories = parseInt(document.getElementById('bikeCalories').value) || 0;
-            saveTodayData();
-            updateHistory();
+            saveTodayDataDebounced();
         }
         
         // Exercise definitions
@@ -1997,6 +2111,7 @@
                 {id: 'inclinePress', name: 'Incline Press Machine', emoji: '🏋️', weighted: true},
                 {id: 'fly', name: 'Fly Machine', emoji: '🏋️', weighted: true},
                 {id: 'inclineDB', name: 'Incline Dumbbell Press', emoji: '🏋️‍♂️', weighted: true},
+                {id: 'inclineDBShoulderPress', name: 'Incline Dumbbell Shoulder Press', emoji: '🏋️‍♂️', weighted: true},
                 {id: 'shoulderPress', name: 'Shoulder Press Machine', emoji: '🏋️', weighted: true},
                 {id: 'tricep', name: 'Overhead Tricep Extension', emoji: '💪', weighted: true}
             ],
@@ -2006,7 +2121,8 @@
                 {id: 'latPull', name: 'Lat Pull Down', emoji: '🏋️', weighted: true},
                 {id: 'latAround', name: 'Cable Lat Pull Around', emoji: '🏋️', weighted: true},
                 {id: 'facePull', name: 'Face Pull', emoji: '🏋️', weighted: true},
-                {id: 'reverseFly', name: 'Reverse Fly Machine', emoji: '🏋️', weighted: true}
+                {id: 'reverseFly', name: 'Reverse Fly Machine', emoji: '🏋️', weighted: true},
+                {id: 'inclineDBCurls', name: 'Incline Dumbbell Curls', emoji: '💪', weighted: true}
             ],
             legs: [
                 {id: 'hamCurl', name: 'Hamstring Curl', emoji: '🏋️', weighted: true},
@@ -2216,7 +2332,7 @@
         
         function checkGoalAchievements() {
             // Check if any goals were just achieved
-            const last7 = allData.slice(0, 7);
+            const last7 = getLastNDays(7);
             const weights = last7.filter(d => d.items?.includes('gymWeights')).length;
             
             if (weights >= 3 && todayData.items.includes('gymWeights')) {
@@ -2235,7 +2351,7 @@
         
         // Version 1.0 - Production Release
         // Sample data functions kept for testing purposes, but not auto-loaded
-        const APP_VERSION = 'v2.0';
+        const APP_VERSION = 'v3.0';
         
         // Clear all data and start fresh (for production use)
         function clearAllData() {
@@ -2397,12 +2513,17 @@
         updateStreaks();
         
         // Initialize mood sliders
-        document.getElementById('moodSlider').value = todayData.mood || 5;
         document.getElementById('sleepQualitySlider').value = todayData.sleepQuality || 5;
-        document.getElementById('skinSlider').value = todayData.skin || 5;
-        updateMoodTracking('mood', todayData.mood || 5);
+        document.getElementById('morningMoodSlider').value = todayData.morningMood || 5;
+        document.getElementById('morningSkinSlider').value = todayData.morningSkin || 5;
+        document.getElementById('eveningMoodSlider').value = todayData.eveningMood || 5;
+        document.getElementById('eveningSkinSlider').value = todayData.eveningSkin || 5;
+        
         updateMoodTracking('sleepQuality', todayData.sleepQuality || 5);
-        updateMoodTracking('skin', todayData.skin || 5);
+        updateMoodTracking('morningMood', todayData.morningMood || 5);
+        updateMoodTracking('morningSkin', todayData.morningSkin || 5);
+        updateMoodTracking('eveningMood', todayData.eveningMood || 5);
+        updateMoodTracking('eveningSkin', todayData.eveningSkin || 5);
         
         // Initialize exercise data
         document.getElementById('bikeTime').value = todayData.bikeTime || 0;
@@ -2564,7 +2685,15 @@
                     budget: { total: 0, running: false, startTime: null },
                     videoGames: { total: 0, running: false, startTime: null },
                     portuguese: { total: 0, running: false, startTime: null }
-                }
+                },
+                sleepQuality: 5,
+                morningMood: 5,
+                morningSkin: 5,
+                eveningMood: 5,
+                eveningSkin: 5,
+                bikeTime: 0,
+                bikeCalories: 0,
+                exercises: {}
             };
         }
         
@@ -2589,7 +2718,7 @@
             const value = todayData.counters[counter];
             
             // Check weekly totals for goals
-            const last7 = allData.slice(0, 7);
+            const last7 = getLastNDays(7);
             const weekTotal = last7.reduce((sum, d) => sum + (d.counters?.[counter] || 0), 0);
             
             if (counter === 'coffeeMade' && weekTotal > 2) {
@@ -2669,9 +2798,9 @@
                 `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
         }
         
-        function toggleSection(section) {
+        function toggleSection(section, e) {
             const content = document.getElementById(`section-${section}`);
-            const header = event.currentTarget;
+            const header = e.currentTarget;
             
             if (content.classList.contains('expanded')) {
                 content.classList.remove('expanded');
@@ -2745,9 +2874,9 @@
             triggerConfetti();
         }
         
-        function switchTab(tab) {
+        function switchTab(tab, e) {
             document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
+            e.currentTarget.classList.add('active');
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             document.getElementById(`${tab}-tab`).classList.add('active');
             
@@ -2819,8 +2948,8 @@
             }).join('');
         }
         
-        async function generateWeeklySummary() {
-            const button = event.target;
+        async function generateWeeklySummary(e) {
+            const button = e.currentTarget;
             const summaryBox = document.getElementById('summaryBox');
             
             button.disabled = true;
@@ -2832,9 +2961,9 @@
             await new Promise(resolve => setTimeout(resolve, 500));
             
             try {
-                const last7 = allData.slice(0, 7);
-                const prev7 = allData.slice(7, 14);
-                const last30 = allData.slice(0, 30);
+                const last7 = getLastNDays(7);
+                const prev7 = getPrevNDays(7);
+                const last30 = getLastNDays(30);
                 
                 // Calculate this week's stats
                 const thisWeek = {
@@ -2846,7 +2975,8 @@
                         lifeAdmin: (last7.reduce((s, d) => s + (d.timers?.lifeAdmin?.total || 0), 0) / 3600).toFixed(1),
                         reading: (last7.reduce((s, d) => s + (d.timers?.reading?.total || 0), 0) / 3600).toFixed(1),
                         budget: (last7.reduce((s, d) => s + (d.timers?.budget?.total || 0), 0) / 3600).toFixed(1),
-                        videoGames: (last7.reduce((s, d) => s + (d.timers?.videoGames?.total || 0), 0) / 3600).toFixed(1)
+                        videoGames: (last7.reduce((s, d) => s + (d.timers?.videoGames?.total || 0), 0) / 3600).toFixed(1),
+                        portuguese: (last7.reduce((s, d) => s + (d.timers?.portuguese?.total || 0), 0) / 60).toFixed(0)
                     },
                     diet: {
                         coffeeMade: last7.reduce((s, d) => s + (d.counters?.coffeeMade || 0), 0),
@@ -2913,7 +3043,7 @@
                 const readingMet = avgReading >= 1.2;
                 summary += `<span style="color: ${readingMet ? '#4CAF50' : '#999'};">●</span> `;
                 summary += `<strong>Reading:</strong> ${thisWeek.time.reading}h / `;
-                summary += `<strong>Portuguese:</strong> ${(parseFloat(thisWeek.time.videoGames) / 60).toFixed(0)}m`;
+                summary += `<strong>Portuguese:</strong> ${thisWeek.time.portuguese}m`;
                 summary += '<br>';
                 
                 // Diet & discipline
@@ -3022,7 +3152,7 @@
         }
         
         function renderStats() {
-            const last7 = allData.slice(0, 7).reverse();
+            const last7 = getLastNDays(7);
             
             // Exercise stats
             const exerciseItems = ['gymWeights', 'gymCardio', 'walk', 'yoga', 'stretching', 'surf'];
@@ -3044,6 +3174,12 @@
             const cardioProgress = document.getElementById('cardioProgress');
             cardioProgress.style.width = `${(cardio/2)*100}%`;
             cardioProgress.className = 'progress-fill' + (cardio >= 2 ? ' met-goal' : '');
+            
+            const socialising = last7.filter(d => d.items?.includes('socialising')).length;
+            document.getElementById('socialisingCount').textContent = `${socialising}/2`;
+            const socialisingProgress = document.getElementById('socialisingProgress');
+            socialisingProgress.style.width = `${(socialising/2)*100}%`;
+            socialisingProgress.className = 'progress-fill' + (socialising >= 2 ? ' met-goal' : '');
             
             // Time stats
             const adminTotal = last7.reduce((s, d) => s + (d.timers?.lifeAdmin?.total || 0), 0);
@@ -3109,7 +3245,7 @@
             alcoholProgress.className = 'progress-fill' + (alcoholWeek > 0 ? ' exceeded-max' : '');
             
             // MONTHLY STATS - Calculate for last 30 days
-            const last30 = allData.slice(0, 30);
+            const last30 = getLastNDays(30);
             
             // Monthly Gym stats
             const weightsMonth = last30.filter(d => d.items?.includes('gymWeights')).length;
@@ -3193,6 +3329,17 @@
 
         // --- Shared chart helpers ---
 
+        // Build a date->entry lookup map for O(1) access in charts
+        let _dataMap = null;
+        function getDataMap() {
+            if (!_dataMap) {
+                _dataMap = new Map();
+                allData.forEach(d => _dataMap.set(d.date, d));
+            }
+            return _dataMap;
+        }
+        function invalidateDataMap() { _dataMap = null; }
+
         // Builds complete date range (last 90 days or all available)
         function getCompleteDateRange() {
             const today = new Date();
@@ -3269,51 +3416,10 @@
             }
         }
 
-        function formatNavLabel(offset) {
-            const { labels } = getChartDateRange(offset);
-            // Extract just "d Mon" from first and last label for compact display
-            const first = labels[0].split(' ').slice(1).join(' ');
-            const last = labels[labels.length - 1].split(' ').slice(1).join(' ');
-            return `${first} – ${last}`;
-        }
-
-        // Returns the max offset allowed (can't scroll past earliest data)
-        function getMaxOffset() {
-            if (allData.length === 0) return 0;
-            const sorted = [...allData].sort((a, b) => a.date.localeCompare(b.date));
-            const earliest = new Date(sorted[0].date + 'T00:00:00');
-            const today = new Date();
-            today.setHours(0,0,0,0);
-            const daysDiff = Math.floor((today - earliest) / (1000*60*60*24));
-            // Allow scrolling so the earliest date can appear at the left edge
-            return Math.max(0, daysDiff - CHART_WINDOW + 1);
-        }
-
-        function shiftChart(type, delta) {
-            const maxOffset = getMaxOffset();
-            if (type === 'mood') {
-                moodChartOffset = Math.max(0, Math.min(maxOffset, moodChartOffset - delta));
-                renderMoodChart();
-            } else {
-                sleepChartOffset = Math.max(0, Math.min(maxOffset, sleepChartOffset - delta));
-                renderSleepChart();
-            }
-        }
-
-        // Custom plugin: breaks line segments where either endpoint is null
-        const gapPlugin = {
-            id: 'gapPlugin',
-            beforeDraw(chart) {
-                // We handle gaps via segment styling instead
-            }
-        };
-
-        // Segment style function: returns undefined (draw normally) if both points have data,
-        // or { borderColor: 'transparent' } to hide the segment if either side is null.
+        // Segment style function for breaking lines across data gaps
         function gapSegmentStyle(ctx) {
-            // ctx.p0DataPoint and ctx.p1DataPoint are the raw data values
-            if (ctx.p0DataPoint === null || ctx.p1DataPoint === null) {
-                return { borderColor: 'rgba(0,0,0,0)', borderWidth: 0 };
+            if (ctx.p0.parsed.y === null || ctx.p1.parsed.y === null) {
+                return 'rgba(0,0,0,0)';
             }
             return undefined;
         }
@@ -3325,13 +3431,13 @@
             const { labels, dateStrs } = getWindowedData(sleepWindowStart);
 
             const wakeData = dateStrs.map(ds => {
-                const entry = allData.find(d => d.date === ds);
+                const entry = getDataMap().get(ds);
                 if (!entry || !entry.wakeTime) return null;
                 const [h, m] = entry.wakeTime.split(':').map(Number);
                 return h + m/60;
             });
             const sleepData = dateStrs.map(ds => {
-                const entry = allData.find(d => d.date === ds);
+                const entry = getDataMap().get(ds);
                 if (!entry || !entry.sleepTime) return null;
                 const [h, m] = entry.sleepTime.split(':').map(Number);
                 let hour = h + m/60;
@@ -3429,21 +3535,25 @@
             });
         }
 
-        // --- Mood / Sleep Quality / Skin Chart ---
+        // --- Mood & Skin Chart ---
         function renderMoodChart() {
             const { labels, dateStrs } = getWindowedData(moodWindowStart);
 
-            const moodData = dateStrs.map(ds => {
-                const entry = allData.find(d => d.date === ds);
-                return entry?.mood || null;
+            const morningMoodData = dateStrs.map(ds => {
+                const entry = getDataMap().get(ds);
+                return entry?.morningMood || null;
             });
-            const sleepQualityData = dateStrs.map(ds => {
-                const entry = allData.find(d => d.date === ds);
-                return entry?.sleepQuality || null;
+            const eveningMoodData = dateStrs.map(ds => {
+                const entry = getDataMap().get(ds);
+                return entry?.eveningMood || null;
             });
-            const skinData = dateStrs.map(ds => {
-                const entry = allData.find(d => d.date === ds);
-                return entry?.skin || null;
+            const morningSkinData = dateStrs.map(ds => {
+                const entry = getDataMap().get(ds);
+                return entry?.morningSkin || null;
+            });
+            const eveningSkinData = dateStrs.map(ds => {
+                const entry = getDataMap().get(ds);
+                return entry?.eveningSkin || null;
             });
 
             const moodCtx = document.getElementById('moodChart');
@@ -3455,38 +3565,50 @@
                     labels,
                     datasets: [
                         {
-                            label: '😊 Mood',
-                            data: moodData,
+                            label: '🌅 Morning Mood',
+                            data: morningMoodData,
                             borderColor: '#667eea',
                             backgroundColor: 'rgba(102, 126, 234, 0.1)',
                             tension: 0.3,
-                            borderWidth: 3,
-                            pointRadius: ctx => ctx.parsed.y !== null ? 5 : 0,
+                            borderWidth: 2,
+                            pointRadius: ctx => ctx.parsed.y !== null ? 4 : 0,
                             pointBackgroundColor: '#667eea',
                             spanGaps: false,
                             segment: { borderColor: gapSegmentStyle }
                         },
                         {
-                            label: '😴 Sleep Quality',
-                            data: sleepQualityData,
-                            borderColor: '#2196f3',
-                            backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                            label: '🌆 Evening Mood',
+                            data: eveningMoodData,
+                            borderColor: '#9575cd',
+                            backgroundColor: 'rgba(149, 117, 205, 0.1)',
                             tension: 0.3,
-                            borderWidth: 3,
-                            pointRadius: ctx => ctx.parsed.y !== null ? 5 : 0,
-                            pointBackgroundColor: '#2196f3',
+                            borderWidth: 2,
+                            pointRadius: ctx => ctx.parsed.y !== null ? 4 : 0,
+                            pointBackgroundColor: '#9575cd',
                             spanGaps: false,
                             segment: { borderColor: gapSegmentStyle }
                         },
                         {
-                            label: '✨ Skin',
-                            data: skinData,
+                            label: '✨ Morning Skin',
+                            data: morningSkinData,
                             borderColor: '#66bb6a',
                             backgroundColor: 'rgba(102, 187, 106, 0.1)',
                             tension: 0.3,
-                            borderWidth: 3,
-                            pointRadius: ctx => ctx.parsed.y !== null ? 5 : 0,
+                            borderWidth: 2,
+                            pointRadius: ctx => ctx.parsed.y !== null ? 4 : 0,
                             pointBackgroundColor: '#66bb6a',
+                            spanGaps: false,
+                            segment: { borderColor: gapSegmentStyle }
+                        },
+                        {
+                            label: '🌙 Evening Skin',
+                            data: eveningSkinData,
+                            borderColor: '#4db6ac',
+                            backgroundColor: 'rgba(77, 182, 172, 0.1)',
+                            tension: 0.3,
+                            borderWidth: 2,
+                            pointRadius: ctx => ctx.parsed.y !== null ? 4 : 0,
+                            pointBackgroundColor: '#4db6ac',
                             spanGaps: false,
                             segment: { borderColor: gapSegmentStyle }
                         }
@@ -3530,6 +3652,92 @@
                     }
                 }
             });
+        }
+
+        // --- Data Export/Import ---
+        function exportData() {
+            try {
+                // Gather all tracker data from localStorage
+                const exportObj = {
+                    version: APP_VERSION,
+                    exportDate: new Date().toISOString(),
+                    data: {}
+                };
+
+                // Export all tracker-related localStorage items
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key.startsWith('tracker_') || key === 'cleaning_data' || key === 'last_loaded_date') {
+                        exportObj.data[key] = localStorage.getItem(key);
+                    }
+                }
+
+                // Create downloadable JSON file
+                const dataStr = JSON.stringify(exportObj, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                
+                // Trigger download
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `daily-tracker-backup-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+
+                alert('✅ Data exported successfully!');
+            } catch (error) {
+                console.error('Export error:', error);
+                alert('❌ Export failed. Please try again.');
+            }
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importObj = JSON.parse(e.target.result);
+                    
+                    // Validate structure
+                    if (!importObj.data || typeof importObj.data !== 'object') {
+                        throw new Error('Invalid backup file format');
+                    }
+
+                    // Confirm with user before overwriting
+                    const confirmMsg = `This will replace all current data with the backup from ${new Date(importObj.exportDate).toLocaleDateString('en-AU')}.\n\nContinue?`;
+                    if (!confirm(confirmMsg)) {
+                        event.target.value = ''; // Reset file input
+                        return;
+                    }
+
+                    // Clear existing tracker data
+                    const keysToRemove = [];
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key.startsWith('tracker_') || key === 'cleaning_data' || key === 'last_loaded_date' || key === 'streaks') {
+                            keysToRemove.push(key);
+                        }
+                    }
+                    keysToRemove.forEach(key => localStorage.removeItem(key));
+
+                    // Import new data
+                    Object.keys(importObj.data).forEach(key => {
+                        localStorage.setItem(key, importObj.data[key]);
+                    });
+
+                    alert('✅ Data imported successfully! Reloading...');
+                    location.reload();
+                } catch (error) {
+                    console.error('Import error:', error);
+                    alert('❌ Import failed. Please check the file and try again.');
+                    event.target.value = ''; // Reset file input
+                }
+            };
+            reader.readAsText(file);
         }
     </script>
 </body>
