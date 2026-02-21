@@ -3,90 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Tracker 2026 - v3.0</title>
+    <title>Daily Tracker 2026 - v4.0</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #ede9fe 0%, #fce4ec 100%);
             min-height: 100vh;
             padding: 20px;
             padding-bottom: 100px;
         }
-        
+
         .container { max-width: 500px; margin: 0 auto; }
-        
+
         .header {
             background: white;
-            border-radius: 20px;
+            border-radius: 24px;
             padding: 25px;
             margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 20px rgba(124, 111, 224, 0.12);
         }
-        
-        .header h1 { color: #667eea; font-size: 28px; margin-bottom: 5px; }
+
+        .header h1 { color: #7c6fe0; font-size: 24px; margin-bottom: 5px; }
         .date { color: #666; font-size: 16px; margin-bottom: 15px; }
-        
+
         .date-picker-container {
             display: flex;
             align-items: center;
             gap: 10px;
             margin-top: 15px;
             padding: 15px;
-            background: #f5f5f5;
-            border-radius: 12px;
+            background: #f5f3ff;
+            border-radius: 14px;
             flex-wrap: wrap;
         }
-        
+
         .date-picker-container label {
             font-size: 14px;
             font-weight: 600;
             color: #333;
             white-space: nowrap;
         }
-        
+
         .date-picker-container input[type="date"] {
             flex: 1;
             min-width: 150px;
             padding: 8px 12px;
-            border: 2px solid #667eea;
-            border-radius: 8px;
+            border: 1.5px solid #7c6fe0;
+            border-radius: 10px;
             font-size: 14px;
             font-family: inherit;
         }
-        
+
         .date-picker-container button {
             padding: 8px 16px;
-            background: #667eea;
+            background: #7c6fe0;
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             white-space: nowrap;
         }
-        
+
         .date-picker-container button:hover {
-            background: #5568d3;
+            background: #6459c7;
         }
-        
+
         .card {
             background: white;
-            border-radius: 20px;
-            padding: 25px;
+            border-radius: 24px;
+            padding: 24px;
             margin-bottom: 15px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 4px 20px rgba(124, 111, 224, 0.10);
         }
-        
-        .card h2 { color: #333; font-size: 20px; margin-bottom: 15px; }
-        
+
+        .card h2 { color: #333; font-size: 18px; margin-bottom: 15px; }
+
         .streak-badge {
             display: inline-block;
-            background: linear-gradient(135deg, #ff9800, #f44336);
+            background: linear-gradient(135deg, #fb923c, #f43f5e);
             color: white;
             padding: 4px 12px;
             border-radius: 12px;
@@ -94,36 +94,36 @@
             font-weight: 600;
             margin-left: 10px;
         }
-        
+
         .tap-button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #7c6fe0 0%, #a78bfa 100%);
             color: white;
             border: none;
-            padding: 20px;
-            border-radius: 15px;
+            padding: 16px 20px;
+            border-radius: 18px;
             font-size: 18px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 15px rgba(124, 111, 224, 0.35);
             width: 100%;
             margin-bottom: 10px;
         }
-        
+
         .tap-button:active { transform: scale(0.95); }
-        
+
         .tap-button.logged {
-            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            box-shadow: 0 4px 15px rgba(74, 222, 128, 0.35);
         }
-        
+
         .tap-button .time {
             display: block;
             font-size: 14px;
             margin-top: 5px;
             opacity: 0.9;
         }
-        
+
         .tap-button .edit-link {
             font-size: 12px;
             text-decoration: underline;
@@ -131,7 +131,7 @@
             margin-top: 5px;
             display: inline-block;
         }
-        
+
         .time-picker-modal {
             display: none;
             position: fixed;
@@ -139,51 +139,51 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.5);
             z-index: 1000;
             justify-content: center;
             align-items: center;
         }
-        
+
         .time-picker-modal.active {
             display: flex;
         }
-        
+
         .time-picker-content {
             background: white;
-            border-radius: 20px;
+            border-radius: 28px;
             padding: 30px;
             max-width: 350px;
             width: 90%;
         }
-        
+
         .time-picker-content h3 {
             color: #333;
             margin-bottom: 20px;
             text-align: center;
         }
-        
+
         .time-picker-wheels {
             display: flex;
             gap: 10px;
             justify-content: center;
             margin-bottom: 20px;
         }
-        
+
         .time-wheel {
             width: 70px;
             height: 150px;
             overflow-y: scroll;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
+            border: 1.5px solid #e8e3ff;
+            border-radius: 14px;
             scroll-snap-type: y mandatory;
             padding: 55px 0;
         }
-        
+
         .time-wheel::-webkit-scrollbar {
             width: 0;
         }
-        
+
         .time-option {
             height: 40px;
             display: flex;
@@ -193,62 +193,62 @@
             color: #333;
             scroll-snap-align: center;
         }
-        
+
         .time-picker-buttons {
             display: flex;
             gap: 10px;
         }
-        
+
         .time-picker-buttons button {
             flex: 1;
             padding: 12px;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
         }
-        
+
         .time-picker-buttons .cancel {
-            background: #e0e0e0;
-            color: #333;
+            background: #f0eeff;
+            color: #7c6fe0;
         }
-        
+
         .time-picker-buttons .confirm {
-            background: #667eea;
+            background: #7c6fe0;
             color: white;
         }
-        
+
         .checkbox-grid { display: grid; gap: 10px; margin-top: 15px; }
-        
+
         .checkbox-item {
             background: white;
-            padding: 15px;
-            border-radius: 12px;
+            padding: 14px 15px;
+            border-radius: 16px;
             display: flex;
             align-items: center;
             gap: 12px;
             cursor: pointer;
             transition: all 0.2s;
-            border: 2px solid #e0e0e0;
+            border: 1.5px solid #e8e3ff;
         }
-        
-        
+
+
         .checkbox-item.checked {
-            background: #e8f5e9;
-            border-color: #4CAF50;
+            background: #dcfce7;
+            border-color: #4ade80;
         }
-        
-        
+
+
         .checkbox-item.overdue {
-            background: #ffebee;
-            border-color: #f44336;
+            background: #fee2e2;
+            border-color: #f87171;
         }
-        
-        
+
+
         .checkbox-item .emoji { font-size: 24px; min-width: 24px; }
-        .checkbox-item .label { flex: 1; font-size: 16px; color: #333; }
-        
+        .checkbox-item .label { flex: 1; font-size: 15px; color: #374151; }
+
         .checkbox-item .due-badge {
             font-size: 12px;
             padding: 4px 8px;
@@ -256,107 +256,108 @@
             font-weight: 600;
             white-space: nowrap;
         }
-        
+
         .checkbox-item .due-badge.overdue {
-            background: #f44336;
+            background: #f87171;
             color: white;
         }
-        
+
         .checkbox-item .due-badge.due-soon {
-            background: #ff9800;
+            background: #fb923c;
             color: white;
         }
-        
+
         .checkbox-item .due-badge.due-later {
-            background: #4CAF50;
-            color: white;
+            background: #4ade80;
+            color: #166534;
         }
-        
+
         .checkbox-item .checkmark {
             width: 24px;
             height: 24px;
-            border: 2px solid #e0e0e0;
-            border-radius: 6px;
+            border: 1.5px solid #d8d0f8;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 16px;
             min-width: 24px;
         }
-        
+
         .checkbox-item.checked .checkmark {
-            background: #4CAF50;
-            border-color: #4CAF50;
+            background: #4ade80;
+            border-color: #4ade80;
             color: white;
         }
-        
+
         .expandable-section {
             margin-bottom: 15px;
         }
-        
+
         .section-header {
-            background: #667eea;
-            color: white;
+            background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+            color: #4c3fa0;
             padding: 15px;
-            border-radius: 12px;
+            border-radius: 14px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: space-between;
             font-weight: 600;
             transition: all 0.2s;
+            border: 1px solid #c4b5fd;
         }
-        
+
         .section-header:hover {
-            background: #5568d3;
+            background: linear-gradient(135deg, #e0d9fb, #d0c5f9);
         }
-        
+
         .section-header .arrow {
             transition: transform 0.3s;
         }
-        
+
         .section-header.expanded .arrow {
             transform: rotate(180deg);
         }
-        
+
         .section-content {
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.3s ease;
         }
-        
+
         .section-content.expanded {
             max-height: 3000px;
             padding-top: 15px;
         }
-        
+
         .counter-item {
             background: white;
-            padding: 15px;
-            border-radius: 12px;
+            padding: 14px 15px;
+            border-radius: 16px;
             display: flex;
             align-items: center;
             gap: 12px;
             margin-bottom: 10px;
-            border: 2px solid #e0e0e0;
+            border: 1.5px solid #e8e3ff;
         }
-        
-        
+
+
         .counter-item .emoji { font-size: 24px; }
-        .counter-item .label { flex: 1; font-size: 16px; color: #333; }
-        
+        .counter-item .label { flex: 1; font-size: 15px; color: #374151; }
+
         .counter-controls {
             display: flex;
             align-items: center;
             gap: 10px;
         }
-        
+
         .counter-btn {
             width: 36px;
             height: 36px;
             border: none;
-            border-radius: 8px;
-            background: #667eea;
+            border-radius: 10px;
+            background: #7c6fe0;
             color: white;
             font-size: 20px;
             font-weight: bold;
@@ -365,71 +366,71 @@
             align-items: center;
             justify-content: center;
         }
-        
+
         .counter-btn:active {
             transform: scale(0.9);
         }
-        
+
         .counter-value {
             min-width: 40px;
             text-align: center;
             font-size: 20px;
             font-weight: bold;
-            color: #667eea;
+            color: #7c6fe0;
         }
-        
+
         .counter-value.exceeded {
-            color: #f44336;
+            color: #f87171;
         }
-        
+
         .timer-item {
             background: white;
-            padding: 15px;
-            border-radius: 12px;
+            padding: 14px 15px;
+            border-radius: 16px;
             margin-bottom: 10px;
-            border: 2px solid #e0e0e0;
+            border: 1.5px solid #e8e3ff;
         }
-        
-        
+
+
         .timer-item.active {
-            background: #fff3e0;
-            border: 2px solid #ff9800;
+            background: #fff7ed;
+            border: 1.5px solid #fb923c;
         }
-        
-        
+
+
         .timer-item.completed {
-            background: #e8f5e9;
-            border: 2px solid #4CAF50;
+            background: #dcfce7;
+            border: 1.5px solid #4ade80;
         }
-        
-        
+
+
         .timer-header {
             display: flex;
             align-items: center;
             gap: 12px;
             margin-bottom: 10px;
         }
-        
+
         .timer-emoji { font-size: 24px; }
         .timer-label { flex: 1; font-size: 16px; font-weight: 600; color: #333; }
-        .timer-display { font-size: 20px; font-weight: bold; color: #667eea; }
-        
+        .timer-display { font-size: 20px; font-weight: bold; color: #7c6fe0; }
+
         .timer-buttons { display: flex; gap: 8px; margin-top: 10px; }
-        
+
         .timer-btn {
             flex: 1;
             padding: 10px;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
         }
-        
-        .timer-btn.start { background: #4CAF50; color: white; }
-        .timer-btn.stop { background: #f44336; color: white; }
-        .timer-btn.reset { background: #e0e0e0; color: #333; }
-        
+
+        .timer-btn.start { background: #4ade80; color: #14532d; }
+        .timer-btn.stop { background: #f87171; color: white; }
+        .timer-btn.reset { background: #f0eeff; color: #7c6fe0; }
+
         .timer-manual {
             display: flex;
             align-items: center;
@@ -437,23 +438,23 @@
             gap: 10px;
             margin-top: 10px;
         }
-        
+
         .timer-manual-btn {
             width: 36px;
             height: 36px;
             border: none;
-            border-radius: 8px;
-            background: #667eea;
+            border-radius: 10px;
+            background: #7c6fe0;
             color: white;
             font-size: 18px;
             font-weight: bold;
             cursor: pointer;
         }
-        
+
         /* Mood/Sleep/Skin Sliders */
         .mood-section {
-            background: #f8f9ff;
-            border-radius: 12px;
+            background: #f5f3ff;
+            border-radius: 14px;
             padding: 15px;
             margin-bottom: 20px;
         }
@@ -496,16 +497,21 @@
         .slider-value {
             font-size: 20px;
             font-weight: bold;
-            color: #667eea;
+            color: #7c6fe0;
             min-width: 30px;
             text-align: right;
+        }
+        .mood-emoji-indicator {
+            font-size: 22px;
+            min-width: 26px;
+            text-align: center;
         }
         input[type="range"].mood-slider {
             -webkit-appearance: none;
             width: 100%;
             height: 8px;
             border-radius: 4px;
-            background: linear-gradient(to right, #f44336 0%, #ff9800 25%, #ffc107 50%, #8bc34a 75%, #4caf50 100%);
+            background: linear-gradient(to right, #f87171 0%, #fb923c 25%, #fbbf24 50%, #a3e635 75%, #4ade80 100%);
             outline: none;
             cursor: pointer;
         }
@@ -517,7 +523,7 @@
             background: white;
             cursor: pointer;
             box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-            border: 2px solid #667eea;
+            border: 2px solid #7c6fe0;
         }
         input[type="range"].mood-slider::-moz-range-thumb {
             width: 24px;
@@ -526,26 +532,54 @@
             background: white;
             cursor: pointer;
             box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-            border: 2px solid #667eea;
+            border: 2px solid #7c6fe0;
         }
         input[type="range"].sleep-quality-slider {
-            background: linear-gradient(to right, #f44336 0%, #ff9800 25%, #ffc107 50%, #64b5f6 75%, #2196f3 100%);
+            background: linear-gradient(to right, #f87171 0%, #fb923c 25%, #fbbf24 50%, #93c5fd 75%, #60a5fa 100%);
         }
         input[type="range"].skin-slider {
-            background: linear-gradient(to right, #f44336 0%, #ff9800 25%, #ffc107 50%, #81c784 75%, #66bb6a 100%);
+            background: linear-gradient(to right, #f87171 0%, #fb923c 25%, #fbbf24 50%, #86efac 75%, #4ade80 100%);
         }
-        
+
+        /* Mood period toggle (merged Morning/Evening card) */
+        .mood-period-toggle {
+            display: flex;
+            background: #f5f3ff;
+            border-radius: 14px;
+            padding: 4px;
+            margin-bottom: 16px;
+            gap: 4px;
+        }
+        .mood-period-toggle button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            color: #7c6fe0;
+            background: transparent;
+            transition: all 0.2s;
+        }
+        .mood-period-toggle button.active {
+            background: white;
+            color: #4c3fa0;
+            box-shadow: 0 2px 8px rgba(124, 111, 224, 0.18);
+        }
+
         /* Exercise Tracking Styles */
         .ex-group { margin-bottom: 15px; }
         .ex-group-header {
-            background: #f5f5f5;
+            background: #f5f3ff;
             padding: 10px;
-            border-radius: 8px;
+            border-radius: 10px;
             font-weight: 600;
             cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            color: #4c3fa0;
         }
         .ex-item { margin: 8px 0; }
         .ex-checkbox {
@@ -554,7 +588,7 @@
             gap: 8px;
             padding: 8px;
             background: #fafafa;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
         }
         .ex-checkbox input { width: 18px; height: 18px; cursor: pointer; }
@@ -563,8 +597,8 @@
             margin-top: 6px;
             padding: 10px;
             background: white;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
+            border: 1.5px solid #e8e3ff;
+            border-radius: 10px;
             display: none;
         }
         .ex-details.active { display: block; }
@@ -575,7 +609,7 @@
             margin-bottom: 6px;
             padding: 6px;
             background: #fafafa;
-            border-radius: 6px;
+            border-radius: 8px;
         }
         .ex-set-label { width: 40px; font-size: 11px; font-weight: 600; color: #666; }
         .ex-input-group {
@@ -588,17 +622,17 @@
             width: 28px;
             height: 28px;
             border: none;
-            background: #667eea;
+            background: #7c6fe0;
             color: white;
-            border-radius: 5px;
+            border-radius: 7px;
             font-size: 16px;
             cursor: pointer;
         }
         .ex-input-group input {
             width: 40px;
             height: 28px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
+            border: 1.5px solid #ddd;
+            border-radius: 7px;
             text-align: center;
             font-size: 12px;
         }
@@ -606,20 +640,20 @@
         .ex-del-btn {
             width: 28px;
             height: 28px;
-            background: #f44336;
+            background: #f87171;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 7px;
             font-size: 16px;
             cursor: pointer;
         }
         .ex-add-btn {
             width: 100%;
             padding: 8px;
-            background: #e8f5e9;
-            border: 2px dashed #4CAF50;
-            border-radius: 6px;
-            color: #4CAF50;
+            background: #dcfce7;
+            border: 1.5px dashed #4ade80;
+            border-radius: 8px;
+            color: #16a34a;
             font-weight: 600;
             cursor: pointer;
             margin-top: 6px;
@@ -629,53 +663,53 @@
             display: flex;
             gap: 8px;
             padding: 8px;
-            background: #e3f2fd;
-            border-radius: 6px;
+            background: #eff6ff;
+            border-radius: 8px;
             margin-top: 8px;
         }
         .ex-stats > div { flex: 1; text-align: center; }
         .ex-stats .label { font-size: 10px; color: #666; margin-bottom: 2px; }
-        .ex-stats .value { font-size: 11px; font-weight: 600; color: #1976d2; }
-        
+        .ex-stats .value { font-size: 11px; font-weight: 600; color: #3b82f6; }
+
         .tab-nav { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; }
-        
+
         .tab-button {
             flex: 0 0 auto;
             width: 58px;
             background: white;
             border: none;
             padding: 10px 4px;
-            border-radius: 12px;
+            border-radius: 14px;
             font-size: 24px;
             font-weight: 600;
             cursor: pointer;
             color: #666;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 10px rgba(124, 111, 224, 0.12);
             white-space: nowrap;
         }
-        
+
         .tab-button.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #7c6fe0 0%, #a78bfa 100%);
             color: white;
         }
-        
+
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        
+
         .history-item {
             background: white;
             padding: 15px;
-            border-radius: 12px;
+            border-radius: 16px;
             margin-bottom: 10px;
-            border: 2px solid #e0e0e0;
+            border: 1.5px solid #e8e3ff;
         }
-        
-        
-        .history-date { font-weight: 600; color: #667eea; margin-bottom: 8px; }
+
+
+        .history-date { font-weight: 600; color: #7c6fe0; margin-bottom: 8px; }
         .history-details { font-size: 14px; color: #666; line-height: 1.6; }
-        
+
         .progress-bar-container { margin: 15px 0; }
-        
+
         .progress-label {
             display: flex;
             justify-content: space-between;
@@ -683,65 +717,65 @@
             font-size: 14px;
             color: #333;
         }
-        
+
         .progress-bar {
-            background: #e0e0e0;
-            height: 10px;
-            border-radius: 5px;
+            background: #ede9fe;
+            height: 8px;
+            border-radius: 6px;
             overflow: hidden;
         }
-        
+
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #667eea, #764ba2);
+            background: linear-gradient(90deg, #a78bfa, #7c6fe0);
             transition: width 0.3s;
         }
-        
+
         .progress-fill.met-goal {
-            background: linear-gradient(90deg, #4CAF50, #45a049);
+            background: linear-gradient(90deg, #4ade80, #22c55e);
         }
-        
+
         .progress-fill.exceeded-max {
-            background: linear-gradient(90deg, #f44336, #d32f2f);
+            background: linear-gradient(90deg, #f87171, #ef4444);
         }
-        
+
         .stat-section { margin-bottom: 20px; }
         .stat-section h3 { font-size: 18px; margin-bottom: 10px; color: #333; }
-        
+
         .toggle-completed {
-            background: #e0e0e0;
+            background: #f0eeff;
             border: none;
             padding: 8px 12px;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 12px;
             cursor: pointer;
             margin-top: 10px;
             width: 100%;
-            color: #333;
+            color: #7c6fe0;
         }
-        
+
         .summary-button {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             color: white;
             border: none;
             padding: 15px;
-            border-radius: 12px;
+            border-radius: 14px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
             width: 100%;
             margin-bottom: 15px;
-            box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
+            box-shadow: 0 4px 15px rgba(245, 87, 108, 0.3);
         }
-        
+
         .summary-button:active {
             transform: scale(0.98);
         }
-        
+
         .summary-box {
             background: white;
-            border: 2px solid #667eea;
-            border-radius: 12px;
+            border: 1.5px solid #c4b5fd;
+            border-radius: 14px;
             padding: 20px;
             margin-top: 15px;
             white-space: pre-wrap;
@@ -750,11 +784,11 @@
             color: #333;
             display: none;
         }
-        
+
         .summary-box.active {
             display: block;
         }
-        
+
         /* Chart navigation */
         .chart-nav {
             display: flex;
@@ -765,12 +799,12 @@
             flex-wrap: wrap;
         }
         .chart-nav-btn {
-            background: #667eea;
+            background: #7c6fe0;
             color: white;
             border: none;
             width: 32px;
             height: 32px;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 14px;
             cursor: pointer;
             display: flex;
@@ -779,10 +813,10 @@
         }
         .chart-nav-btn:active {
             transform: scale(0.9);
-            background: #5568d3;
+            background: #6459c7;
         }
         .chart-nav-btn:disabled {
-            background: #ccc;
+            background: #d8d0f8;
             cursor: default;
         }
         .chart-nav-label {
@@ -805,19 +839,19 @@
         <div class="header">
             <h1 style="display: flex; align-items: center; justify-content: space-between;">
                 <span>🎯 Daily Tracker</span>
-                <span style="font-size: 14px; color: #999; font-weight: normal;">v3.0</span>
+                <span style="font-size: 14px; color: #999; font-weight: normal;">v4.0</span>
             </h1>
             <div class="date" id="currentDate"></div>
             <div class="date-picker-container" style="display: none;" id="datePicker">
-                <button onclick="goToToday()" id="todayBtn" style="background: #4CAF50;">Today</button>
+                <button onclick="goToToday()" id="todayBtn" style="background: #4ade80; color: #14532d;">Today</button>
                 <label>📅</label>
                 <input type="date" id="dateInput" onchange="loadDateData()">
             </div>
             <div style="display: flex; gap: 8px; margin-top: 12px;">
-                <button onclick="exportData()" style="flex: 1; padding: 10px; background: #667eea; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                <button onclick="exportData()" style="flex: 1; padding: 10px; background: #7c6fe0; color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer;">
                     📤 Export Data
                 </button>
-                <button onclick="document.getElementById('importFile').click()" style="flex: 1; padding: 10px; background: #4CAF50; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                <button onclick="document.getElementById('importFile').click()" style="flex: 1; padding: 10px; background: #4ade80; color: #14532d; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer;">
                     📥 Import Data
                 </button>
                 <input type="file" id="importFile" accept=".json" onchange="importData(event)" style="display: none;">
@@ -882,71 +916,72 @@
                 </div>
             </div>
             
-            <!-- Morning Tracking -->
-            <div class="card mood-section">
-                <h2>🌅 Morning</h2>
-                <!-- Morning Mood -->
-                <div class="slider-row">
-                    <div class="slider-header">
-                        <div class="slider-title">
-                            <h4>😊 Mood</h4>
-                            <span class="slider-emoji" id="morningMoodEmoji">😐</span>
-                        </div>
-                        <div class="slider-right">
-                            <span class="slider-desc" id="morningMoodDesc">Neutral</span>
-                            <span class="slider-value" id="morningMoodValue">5</span>
-                        </div>
-                    </div>
-                    <input type="range" min="1" max="10" value="5" class="mood-slider" id="morningMoodSlider" oninput="updateMoodTracking('morningMood', this.value)">
+            <!-- Mood & Skin Tracking (Morning / Evening merged) -->
+            <div class="card">
+                <h2>🌡️ Mood &amp; Skin</h2>
+                <div class="mood-period-toggle">
+                    <button id="moodToggleMorning" class="active" onclick="toggleMoodPeriod('morning', event)">🌅 Morning</button>
+                    <button id="moodToggleEvening" onclick="toggleMoodPeriod('evening', event)">🌆 Evening</button>
                 </div>
-                
-                <!-- Morning Skin -->
-                <div class="slider-row">
-                    <div class="slider-header">
-                        <div class="slider-title">
-                            <h4>✨ Skin</h4>
-                            <span class="slider-emoji" id="morningSkinEmoji">😐</span>
+
+                <!-- Morning Panel -->
+                <div id="moodMorningPanel" class="mood-section">
+                    <div class="slider-row">
+                        <div class="slider-header">
+                            <div class="slider-title">
+                                <h4>😊 Mood</h4>
+                                <span class="slider-emoji" id="morningMoodEmoji">😐</span>
+                            </div>
+                            <div class="slider-right">
+                                <span class="slider-desc" id="morningMoodDesc">Neutral</span>
+                                <span class="slider-value" id="morningMoodValue">5</span>
+                            </div>
                         </div>
-                        <div class="slider-right">
-                            <span class="slider-desc" id="morningSkinDesc">Average</span>
-                            <span class="slider-value" id="morningSkinValue">5</span>
-                        </div>
+                        <input type="range" min="1" max="10" value="5" class="mood-slider" id="morningMoodSlider" oninput="updateMoodTracking('morningMood', this.value)">
                     </div>
-                    <input type="range" min="1" max="10" value="5" class="mood-slider skin-slider" id="morningSkinSlider" oninput="updateMoodTracking('morningSkin', this.value)">
+                    <div class="slider-row">
+                        <div class="slider-header">
+                            <div class="slider-title">
+                                <h4>✨ Skin</h4>
+                                <span class="slider-emoji" id="morningSkinEmoji">😐</span>
+                            </div>
+                            <div class="slider-right">
+                                <span class="slider-desc" id="morningSkinDesc">Average</span>
+                                <span class="slider-value" id="morningSkinValue">5</span>
+                            </div>
+                        </div>
+                        <input type="range" min="1" max="10" value="5" class="mood-slider skin-slider" id="morningSkinSlider" oninput="updateMoodTracking('morningSkin', this.value)">
+                    </div>
                 </div>
-            </div>
-            
-            <!-- Evening Tracking -->
-            <div class="card mood-section">
-                <h2>🌆 Evening</h2>
-                <!-- Evening Mood -->
-                <div class="slider-row">
-                    <div class="slider-header">
-                        <div class="slider-title">
-                            <h4>😊 Mood</h4>
-                            <span class="slider-emoji" id="eveningMoodEmoji">😐</span>
+
+                <!-- Evening Panel -->
+                <div id="moodEveningPanel" class="mood-section" style="display:none;">
+                    <div class="slider-row">
+                        <div class="slider-header">
+                            <div class="slider-title">
+                                <h4>😊 Mood</h4>
+                                <span class="slider-emoji" id="eveningMoodEmoji">😐</span>
+                            </div>
+                            <div class="slider-right">
+                                <span class="slider-desc" id="eveningMoodDesc">Neutral</span>
+                                <span class="slider-value" id="eveningMoodValue">5</span>
+                            </div>
                         </div>
-                        <div class="slider-right">
-                            <span class="slider-desc" id="eveningMoodDesc">Neutral</span>
-                            <span class="slider-value" id="eveningMoodValue">5</span>
-                        </div>
+                        <input type="range" min="1" max="10" value="5" class="mood-slider" id="eveningMoodSlider" oninput="updateMoodTracking('eveningMood', this.value)">
                     </div>
-                    <input type="range" min="1" max="10" value="5" class="mood-slider" id="eveningMoodSlider" oninput="updateMoodTracking('eveningMood', this.value)">
-                </div>
-                
-                <!-- Evening Skin -->
-                <div class="slider-row">
-                    <div class="slider-header">
-                        <div class="slider-title">
-                            <h4>✨ Skin</h4>
-                            <span class="slider-emoji" id="eveningSkinEmoji">😐</span>
+                    <div class="slider-row">
+                        <div class="slider-header">
+                            <div class="slider-title">
+                                <h4>✨ Skin</h4>
+                                <span class="slider-emoji" id="eveningSkinEmoji">😐</span>
+                            </div>
+                            <div class="slider-right">
+                                <span class="slider-desc" id="eveningSkinDesc">Average</span>
+                                <span class="slider-value" id="eveningSkinValue">5</span>
+                            </div>
                         </div>
-                        <div class="slider-right">
-                            <span class="slider-desc" id="eveningSkinDesc">Average</span>
-                            <span class="slider-value" id="eveningSkinValue">5</span>
-                        </div>
+                        <input type="range" min="1" max="10" value="5" class="mood-slider skin-slider" id="eveningSkinSlider" oninput="updateMoodTracking('eveningSkin', this.value)">
                     </div>
-                    <input type="range" min="1" max="10" value="5" class="mood-slider skin-slider" id="eveningSkinSlider" oninput="updateMoodTracking('eveningSkin', this.value)">
                 </div>
             </div>
             
@@ -2099,6 +2134,14 @@
             saveTodayDataDebounced();
         }
         
+        function toggleMoodPeriod(period, e) {
+            if (e) e.stopPropagation();
+            document.getElementById('moodMorningPanel').style.display = period === 'morning' ? '' : 'none';
+            document.getElementById('moodEveningPanel').style.display = period === 'evening' ? '' : 'none';
+            document.getElementById('moodToggleMorning').classList.toggle('active', period === 'morning');
+            document.getElementById('moodToggleEvening').classList.toggle('active', period === 'evening');
+        }
+
         function saveExerciseData() {
             todayData.bikeTime = parseInt(document.getElementById('bikeTime').value) || 0;
             todayData.bikeCalories = parseInt(document.getElementById('bikeCalories').value) || 0;
@@ -2351,7 +2394,7 @@
         
         // Version 1.0 - Production Release
         // Sample data functions kept for testing purposes, but not auto-loaded
-        const APP_VERSION = 'v3.0';
+        const APP_VERSION = 'v4.0';
         
         // Clear all data and start fresh (for production use)
         function clearAllData() {
@@ -2452,7 +2495,10 @@
         document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-AU', {
             weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
         });
-        
+
+        // Auto-select morning or evening panel based on time of day
+        toggleMoodPeriod(new Date().getHours() >= 13 ? 'evening' : 'morning');
+
         // Restore sleep buttons
         const wakeBtn = document.getElementById('wakeBtn');
         const sleepBtn = document.getElementById('sleepBtn');
@@ -2660,7 +2706,7 @@
                 // Update Today button color
                 const todayBtn = document.getElementById('todayBtn');
                 if (todayBtn) {
-                    todayBtn.style.background = (selectedDate === getToday()) ? '#4CAF50' : '#667eea';
+                    todayBtn.style.background = (selectedDate === getToday()) ? '#4ade80' : '#7c6fe0';
                 }
             }
         }
@@ -3468,9 +3514,9 @@
                         {
                             label: 'Bed Time',
                             data: sleepData,
-                            borderColor: '#667eea',
+                            borderColor: '#7c6fe0',
                             backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                            pointBackgroundColor: '#667eea',
+                            pointBackgroundColor: '#7c6fe0',
                             pointRadius: ctx => ctx.parsed.y !== null ? 5 : 0,
                             tension: 0.2,
                             spanGaps: false,
@@ -3567,12 +3613,12 @@
                         {
                             label: '🌅 Morning Mood',
                             data: morningMoodData,
-                            borderColor: '#667eea',
+                            borderColor: '#7c6fe0',
                             backgroundColor: 'rgba(102, 126, 234, 0.1)',
                             tension: 0.3,
                             borderWidth: 2,
                             pointRadius: ctx => ctx.parsed.y !== null ? 4 : 0,
-                            pointBackgroundColor: '#667eea',
+                            pointBackgroundColor: '#7c6fe0',
                             spanGaps: false,
                             segment: { borderColor: gapSegmentStyle }
                         },
