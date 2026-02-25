@@ -3462,6 +3462,32 @@
             }
         }
 
+        // Touch-drag pan on chart canvas. Drag right = older data, drag left = newer.
+        function initChartTouchPan(canvasId, scrollContainerId) {
+            const canvas = document.getElementById(canvasId);
+            const scrollContainer = document.getElementById(scrollContainerId);
+            if (!canvas || !scrollContainer) return;
+
+            let touchStartX = null;
+
+            canvas.addEventListener('touchstart', function(e) {
+                touchStartX = e.touches[0].clientX;
+            }, { passive: false });
+
+            canvas.addEventListener('touchmove', function(e) {
+                if (touchStartX === null) return;
+                e.preventDefault();
+                const currentX = e.touches[0].clientX;
+                const deltaX = currentX - touchStartX;
+                touchStartX = currentX;
+                scrollContainer.scrollLeft -= deltaX; // fires onscroll -> updateChartWindow
+            }, { passive: false });
+
+            canvas.addEventListener('touchend', function() {
+                touchStartX = null;
+            }, { passive: false });
+        }
+
         // Segment style function for breaking lines across data gaps
         function gapSegmentStyle(ctx) {
             if (ctx.p0.parsed.y === null || ctx.p1.parsed.y === null) {
@@ -3785,6 +3811,10 @@
             };
             reader.readAsText(file);
         }
+
+        // Initialise touch-drag panning (called once, canvases exist in static HTML)
+        initChartTouchPan('sleepChart', 'sleepScrollContainer');
+        initChartTouchPan('moodChart', 'moodScrollContainer');
     </script>
 </body>
 </html>
