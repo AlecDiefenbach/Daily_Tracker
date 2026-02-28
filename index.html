@@ -1196,6 +1196,23 @@
                                 <button class="timer-manual-btn" onclick="adjustTimer('portuguese', 10)">+</button>
                             </div>
                         </div>
+                        <div class="timer-item" id="timer-meditating">
+                            <div class="timer-header">
+                                <span class="timer-emoji">🧘</span>
+                                <span class="timer-label">Meditating</span>
+                                <span class="timer-display" id="display-meditating">00:00</span>
+                            </div>
+                            <div class="timer-buttons">
+                                <button class="timer-btn start" onclick="startTimer('meditating')">Start</button>
+                                <button class="timer-btn stop" onclick="stopTimer('meditating')">Stop</button>
+                                <button class="timer-btn reset" onclick="resetTimer('meditating')">Reset</button>
+                            </div>
+                            <div class="timer-manual">
+                                <button class="timer-manual-btn" onclick="adjustTimer('meditating', -10)">-</button>
+                                <span style="font-size: 14px; color: #666;">10 min</span>
+                                <button class="timer-manual-btn" onclick="adjustTimer('meditating', 10)">+</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             
@@ -1480,8 +1497,17 @@
                             <div class="progress-fill" id="portugueseProgress"></div>
                         </div>
                     </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-label">
+                            <span>🧘 Meditating (30 min/week)</span>
+                            <span id="meditatingTime">0m / 30m</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="meditatingProgress"></div>
+                        </div>
+                    </div>
                 </div>
-                
+
                 <div class="stat-section">
                     <h3>🍽️ Diet Goals This Week</h3>
                     <div class="progress-bar-container">
@@ -1595,8 +1621,17 @@
                             <div class="progress-fill" id="portugueseProgressMonth"></div>
                         </div>
                     </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-label">
+                            <span>🧘 Meditating</span>
+                            <span id="meditatingTimeMonth">0h / 2h</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="meditatingProgressMonth"></div>
+                        </div>
+                    </div>
                 </div>
-                
+
                 <div class="stat-section">
                     <h3>🍽️ Diet Goals This Month</h3>
                     <div class="progress-bar-container">
@@ -1749,7 +1784,8 @@
                     reading: { total: 0, running: false, startTime: null },
                     budget: { total: 0, running: false, startTime: null },
                     videoGames: { total: 0, running: false, startTime: null },
-                    portuguese: { total: 0, running: false, startTime: null }
+                    portuguese: { total: 0, running: false, startTime: null },
+                    meditating: { total: 0, running: false, startTime: null }
                 },
                 sleepQuality: 5,
                 morningMood: 5,
@@ -1798,49 +1834,49 @@
                     wakeTime: '07:00', sleepTime: null, isWeekend: false,
                     items: ['gymWeights', 'walk', 'eyeDrops', 'morningSun'],
                     counters: { coffeeMade: 1, coffeeBought: 0, alcohol: 0 },
-                    timers: { lifeAdmin: { total: 1200 }, reading: { total: 600 }, budget: { total: 0 }, videoGames: { total: 600 }, portuguese: { total: 720 } }
+                    timers: { lifeAdmin: { total: 1200 }, reading: { total: 600 }, budget: { total: 0 }, videoGames: { total: 600 }, portuguese: { total: 720 }, meditating: { total: 0 } }
                 },
                 {
                     date: '2026-01-06',
                     wakeTime: '06:30', sleepTime: '22:30', isWeekend: false,
                     items: ['gymCardio', 'stretching', 'eyeDrops', 'duofilm', 'nasonex', 'noseTape', 'mouthTape', 'eyeGel', 'morningSun', 'afternoonSun', 'cookedDinner'],
                     counters: { coffeeMade: 0, coffeeBought: 0, alcohol: 0 },
-                    timers: { lifeAdmin: { total: 2700 }, reading: { total: 900 }, budget: { total: 0 }, videoGames: { total: 0 }, portuguese: { total: 660 } }
+                    timers: { lifeAdmin: { total: 2700 }, reading: { total: 900 }, budget: { total: 0 }, videoGames: { total: 0 }, portuguese: { total: 660 }, meditating: { total: 600 } }
                 },
                 {
                     date: '2026-01-05',
                     wakeTime: '07:30', sleepTime: '23:15', isWeekend: false,
                     items: ['gymWeights', 'walk', 'eyeDrops', 'nasonex', 'mouthTape', 'morningSun'],
                     counters: { coffeeMade: 1, coffeeBought: 0, alcohol: 0 },
-                    timers: { lifeAdmin: { total: 1500 }, reading: { total: 480 }, budget: { total: 0 }, videoGames: { total: 1800 }, portuguese: { total: 540 } }
+                    timers: { lifeAdmin: { total: 1500 }, reading: { total: 480 }, budget: { total: 0 }, videoGames: { total: 1800 }, portuguese: { total: 540 }, meditating: { total: 0 } }
                 },
                 {
                     date: '2026-01-04',
                     wakeTime: '09:00', sleepTime: '23:45', isWeekend: true,
                     items: ['surf', 'stretching', 'morningSun'],
                     counters: { coffeeMade: 0, coffeeBought: 1, alcohol: 0 },
-                    timers: { lifeAdmin: { total: 900 }, reading: { total: 1200 }, budget: { total: 0 }, videoGames: { total: 2400 }, portuguese: { total: 600 } }
+                    timers: { lifeAdmin: { total: 900 }, reading: { total: 1200 }, budget: { total: 0 }, videoGames: { total: 2400 }, portuguese: { total: 600 }, meditating: { total: 1200 } }
                 },
                 {
                     date: '2026-01-03',
                     wakeTime: '08:30', sleepTime: '00:15', isWeekend: true,
                     items: ['walk', 'yoga', 'eyeDrops', 'duofilm', 'morningSun', 'cookedDinner'],
                     counters: { coffeeMade: 1, coffeeBought: 0, alcohol: 2 },
-                    timers: { lifeAdmin: { total: 1200 }, reading: { total: 300 }, budget: { total: 0 }, videoGames: { total: 3600 }, portuguese: { total: 0 } }
+                    timers: { lifeAdmin: { total: 1200 }, reading: { total: 300 }, budget: { total: 0 }, videoGames: { total: 3600 }, portuguese: { total: 0 }, meditating: { total: 0 } }
                 },
                 {
                     date: '2026-01-02',
                     wakeTime: '06:45', sleepTime: '22:45', isWeekend: false,
                     items: ['gymCardio', 'stretching', 'eyeDrops', 'nasonex', 'morningSun', 'mealPrep'],
                     counters: { coffeeMade: 0, coffeeBought: 1, alcohol: 1 },
-                    timers: { lifeAdmin: { total: 2100 }, reading: { total: 900 }, budget: { total: 1800 }, videoGames: { total: 0 }, portuguese: { total: 600 } }
+                    timers: { lifeAdmin: { total: 2100 }, reading: { total: 900 }, budget: { total: 1800 }, videoGames: { total: 0 }, portuguese: { total: 600 }, meditating: { total: 600 } }
                 },
                 {
                     date: '2026-01-01',
                     wakeTime: '07:15', sleepTime: '23:30', isWeekend: false,
                     items: ['gymWeights', 'walk', 'eyeDrops', 'duofilm', 'morningSun', 'afternoonSun', 'cookedDinner'],
                     counters: { coffeeMade: 1, coffeeBought: 0, alcohol: 0 },
-                    timers: { lifeAdmin: { total: 1800 }, reading: { total: 600 }, budget: { total: 0 }, videoGames: { total: 1200 }, portuguese: { total: 720 } }
+                    timers: { lifeAdmin: { total: 1800 }, reading: { total: 600 }, budget: { total: 0 }, videoGames: { total: 1200 }, portuguese: { total: 720 }, meditating: { total: 0 } }
                 }
             ];
             
@@ -1856,7 +1892,8 @@
                     reading: { total: 0 },
                     budget: { total: 0 },
                     videoGames: { total: 0 },
-                    portuguese: { total: 0 }
+                    portuguese: { total: 0 },
+                    meditating: { total: 0 }
                 };
                 
                 // Gym pattern: ~3-4 times per week
@@ -1885,6 +1922,7 @@
                 timers.budget.total = day % 7 === 0 ? Math.floor(Math.random() * 1800) : 0;
                 timers.videoGames.total = isWeekend ? Math.floor(Math.random() * 4800) + 1200 : Math.floor(Math.random() * 1800);
                 timers.portuguese.total = day % 2 === 0 ? Math.floor(Math.random() * 900) + 300 : 0;
+                timers.meditating.total = day % 3 === 0 ? Math.floor(Math.random() * 900) + 300 : 0;
                 
                 dummyData.push({
                     date,
@@ -2730,7 +2768,8 @@
                     reading: { total: 0, running: false, startTime: null },
                     budget: { total: 0, running: false, startTime: null },
                     videoGames: { total: 0, running: false, startTime: null },
-                    portuguese: { total: 0, running: false, startTime: null }
+                    portuguese: { total: 0, running: false, startTime: null },
+                    meditating: { total: 0, running: false, startTime: null }
                 },
                 sleepQuality: 5,
                 morningMood: 5,
@@ -2979,6 +3018,7 @@
                 if (d.timers?.budget?.total > 0) timedActivities.push(`💰 Budget: ${Math.floor(d.timers.budget.total/60)}m`);
                 if (d.timers?.videoGames?.total > 0) timedActivities.push(`🎮 Video Games: ${Math.floor(d.timers.videoGames.total/60)}m`);
                 if (d.timers?.portuguese?.total > 0) timedActivities.push(`🇧🇷 Portuguese: ${Math.floor(d.timers.portuguese.total/60)}m`);
+                if (d.timers?.meditating?.total > 0) timedActivities.push(`🧘 Meditating: ${Math.floor(d.timers.meditating.total/60)}m`);
                 if (timedActivities.length > 0) {
                     sections.push(`<div style="margin-bottom: 5px;"><strong>Time Spent:</strong> ${timedActivities.join(', ')}</div>`);
                 }
@@ -3022,7 +3062,8 @@
                         reading: (last7.reduce((s, d) => s + (d.timers?.reading?.total || 0), 0) / 3600).toFixed(1),
                         budget: (last7.reduce((s, d) => s + (d.timers?.budget?.total || 0), 0) / 3600).toFixed(1),
                         videoGames: (last7.reduce((s, d) => s + (d.timers?.videoGames?.total || 0), 0) / 3600).toFixed(1),
-                        portuguese: (last7.reduce((s, d) => s + (d.timers?.portuguese?.total || 0), 0) / 60).toFixed(0)
+                        portuguese: (last7.reduce((s, d) => s + (d.timers?.portuguese?.total || 0), 0) / 60).toFixed(0),
+                        meditating: (last7.reduce((s, d) => s + (d.timers?.meditating?.total || 0), 0) / 60).toFixed(0)
                     },
                     diet: {
                         coffeeMade: last7.reduce((s, d) => s + (d.counters?.coffeeMade || 0), 0),
@@ -3089,7 +3130,8 @@
                 const readingMet = avgReading >= 1.2;
                 summary += `<span style="color: ${readingMet ? '#4CAF50' : '#999'};">●</span> `;
                 summary += `<strong>Reading:</strong> ${thisWeek.time.reading}h / `;
-                summary += `<strong>Portuguese:</strong> ${thisWeek.time.portuguese}m`;
+                summary += `<strong>Portuguese:</strong> ${thisWeek.time.portuguese}m / `;
+                summary += `<strong>Meditating:</strong> ${thisWeek.time.meditating}m`;
                 summary += '<br>';
                 
                 // Diet & discipline
@@ -3263,7 +3305,14 @@
             const portugueseProgress = document.getElementById('portugueseProgress');
             portugueseProgress.style.width = `${Math.min((portugueseMin/70)*100, 100)}%`;
             portugueseProgress.className = 'progress-fill' + (portugueseMin >= 70 ? ' met-goal' : '');
-            
+
+            const meditatingTotal = last7.reduce((s, d) => s + (d.timers?.meditating?.total || 0), 0);
+            const meditatingMin = Math.floor(meditatingTotal / 60);
+            document.getElementById('meditatingTime').textContent = `${meditatingMin}m / 30m`;
+            const meditatingProgress = document.getElementById('meditatingProgress');
+            meditatingProgress.style.width = `${Math.min((meditatingMin/30)*100, 100)}%`;
+            meditatingProgress.className = 'progress-fill' + (meditatingMin >= 30 ? ' met-goal' : '');
+
             // Diet stats
             const coffeeMadeWeek = last7.reduce((s, d) => s + (d.counters?.coffeeMade || 0), 0);
             const coffeeBoughtWeek = last7.reduce((s, d) => s + (d.counters?.coffeeBought || 0), 0);
@@ -3341,7 +3390,14 @@
             const portugueseProgressMonth = document.getElementById('portugueseProgressMonth');
             portugueseProgressMonth.style.width = `${Math.min((portugueseHMonth/5)*100, 100)}%`;
             portugueseProgressMonth.className = 'progress-fill' + (portugueseHMonth >= 5 ? ' met-goal' : '');
-            
+
+            const meditatingTotalMonth = last30.reduce((s, d) => s + (d.timers?.meditating?.total || 0), 0);
+            const meditatingHMonth = (meditatingTotalMonth / 3600).toFixed(1);
+            document.getElementById('meditatingTimeMonth').textContent = `${meditatingHMonth}h / 2h`;
+            const meditatingProgressMonth = document.getElementById('meditatingProgressMonth');
+            meditatingProgressMonth.style.width = `${Math.min((meditatingHMonth/2)*100, 100)}%`;
+            meditatingProgressMonth.className = 'progress-fill' + (meditatingHMonth >= 2 ? ' met-goal' : '');
+
             // Monthly Diet stats
             const coffeeMadeMonth = last30.reduce((s, d) => s + (d.counters?.coffeeMade || 0), 0);
             const coffeeBoughtMonth = last30.reduce((s, d) => s + (d.counters?.coffeeBought || 0), 0);
