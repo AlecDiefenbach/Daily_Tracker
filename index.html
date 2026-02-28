@@ -3518,9 +3518,15 @@
                 return hour;
             });
 
-            const ctx = document.getElementById('sleepChart');
-            if (sleepChart) sleepChart.destroy();
+            if (sleepChart) {
+                sleepChart.data.labels = labels;
+                sleepChart.data.datasets[0].data = wakeData;
+                sleepChart.data.datasets[1].data = sleepData;
+                sleepChart.update('none');
+                return;
+            }
 
+            const ctx = document.getElementById('sleepChart');
             sleepChart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -3551,6 +3557,7 @@
                     ]
                 },
                 options: {
+                    animation: false,
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
@@ -3628,9 +3635,17 @@
                 return entry?.eveningSkin || null;
             });
 
-            const moodCtx = document.getElementById('moodChart');
-            if (moodChart) moodChart.destroy();
+            if (moodChart) {
+                moodChart.data.labels = labels;
+                moodChart.data.datasets[0].data = morningMoodData;
+                moodChart.data.datasets[1].data = eveningMoodData;
+                moodChart.data.datasets[2].data = morningSkinData;
+                moodChart.data.datasets[3].data = eveningSkinData;
+                moodChart.update('none');
+                return;
+            }
 
+            const moodCtx = document.getElementById('moodChart');
             moodChart = new Chart(moodCtx, {
                 type: 'line',
                 data: {
@@ -3687,6 +3702,7 @@
                     ]
                 },
                 options: {
+                    animation: false,
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
